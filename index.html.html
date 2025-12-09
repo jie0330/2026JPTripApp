@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>2026''冬の旅</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        :root { --bg-color: #Fdfdfd; --winter: #8DA3C1; }
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: var(--bg-color);
+            color: #4a5568;
+            background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        .pt-safe { padding-top: env(safe-area-inset-top); }
+        .soft-shadow { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+        #schedule-map { width: 100%; height: 100%; z-index: 1; }
+        .leaflet-popup-content-wrapper { border-radius: 8px; font-weight: bold; font-size: 12px; padding: 2px; }
+        .transit-line::before {
+            content: ''; position: absolute; left: -20px; top: 24px; bottom: -24px; width: 2px;
+            background-image: linear-gradient(to bottom, #cbd5e1 50%, transparent 50%); background-size: 2px 10px; z-index: 0;
+        }
+        .draggable-item { cursor: grab; }
+        .draggable-item:active { cursor: grabbing; }
+        .dragging { opacity: 0.5; transform: scale(0.98); background-color: #f0f9ff; border: 2px dashed #8DA3C1; }
+        .drag-handle { cursor: grab; touch-action: none; }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { winter: { DEFAULT: '#8DA3C1', light: '#F3F6F9', dark: '#5F738E' } } } }
+        }
+    </script>
+</head>
+<body class="h-screen overflow-hidden flex flex-col text-slate-600">
+
+<div id="app" class="flex flex-col h-full relative">
+
+    <header class="bg-white/95 backdrop-blur-md pt-safe shadow-sm z-30 sticky top-0">
+        <div class="px-6 pt-4 pb-2 flex justify-between items-end">
+            <div>
+                <div class="text-[10px] text-winter font-bold tracking-widest uppercase mb-1">Travel Log 2026</div>
+                <h1 class="text-xl font-bold text-gray-800 tracking-tight flex items-center">
+                    2026''冬の旅 <span class="text-base ml-2 text-winter">❄️</span>
+                </h1>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <button v-if="currentTab === 'schedule'" @click="refreshMap" class="text-[10px] bg-winter/10 text-winter px-2 py-1 rounded-full border border-winter/20 active:bg-winter active:text-white transition-colors flex items-center">
+                    <span class="mr-1">↻</span> Map
+                </button>
+                <button @click="showDataModal = true" class="text-gray-400 hover:text-winter transition-colors p-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 1 1 0-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 0 1-1.44-4.282m3.102.069a18.03 18.03 0 0 1-.59-4.59c0-1.586.205-3.124.59-4.59m0 9.18a23.848 23.848 0 0 1 8.835 2.535M10.34 6.66a23.847 23.847 0 0 0 8.835-2.535m0 0A23.74 23.74 0 0 0 18.795 3m.38 1.125a23.91 23.91 0 0 1 1.014 5.795" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex border-b border-gray-100 mt-2">
+            <button @click="currentTab = 'schedule'" class="flex-1 py-3 text-sm font-bold transition-colors relative" 
+                :class="currentTab === 'schedule' ? 'text-winter' : 'text-gray-300 hover:text-gray-400'">
+                行程 & 交通
+                <div v-if="currentTab === 'schedule'" class="absolute bottom-0 left-0 w-full h-0.5 bg-winter"></div>
+            </button>
+            <button @click="currentTab = 'money'" class="flex-1 py-3 text-sm font-bold transition-colors relative"
+                :class="currentTab === 'money' ? 'text-winter' : 'text-gray-300 hover:text-gray-400'">
+                分帳 & 匯率
+                <div v-if="currentTab === 'money'" class="absolute bottom-0 left-0 w-full h-0.5 bg-winter"></div>
+            </button>
+        </div>
+        
+        <div v-if="currentTab === 'schedule'" class="px-4 py-3 bg-gray-50/50 border-b border-gray-100">
+             <div class="flex space-x-3 overflow-x-auto no-scrollbar">
+                <button v-for="(day, index) in days" :key="index" @click="changeDay(index)"
+                    class="flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-300 border"
+                    :class="currentDayIndex === index ? 'bg-winter text-white border-winter shadow-md' : 'bg-white text-gray-400 border-gray-200'">
+                    Day {{ index }}
+                </button>
+                <button @click="addDay" class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full border border-dashed border-gray-300 text-gray-400 text-sm hover:border-winter hover:text-winter bg-white">+</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-6 pb-6 scroll-smooth relative">
+        <div v-if="currentTab === 'schedule'" class="space-y-6">
+            <div class="relative w-full h-56 rounded-3xl overflow-hidden soft-shadow border border-gray-100 bg-gray-100">
+                <div id="schedule-map"></div>
+                <div v-if="mapLoading" class="absolute inset-0 bg-white/60 backdrop-blur-sm z-[1000] flex items-center justify-center pointer-events-none">
+                    <div class="text-xs font-bold text-winter animate-pulse">Updating Pins...</div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between px-1">
+                 <input type="date" v-model="days[currentDayIndex].date" class="bg-transparent text-sm font-bold text-gray-400 border-none p-0 focus:ring-0">
+                 <div v-if="weatherData.current" class="text-xs font-medium text-winter bg-blue-50 px-2 py-1 rounded-md">
+                    {{ weatherIcon }} {{ weatherData.current.temperature_2d }}°C
+                 </div>
+            </div>
+
+            <div class="relative space-y-6 pl-4 border-l border-gray-200 ml-2">
+                <div v-if="days[currentDayIndex].events.length === 0" class="pl-4 py-4 text-xs text-gray-300 font-light tracking-widest">
+                    NO EVENTS FOR TODAY
+                </div>
+
+                <div v-for="(event, eIndex) in days[currentDayIndex].events" 
+                     :key="event.id" 
+                     draggable="true"
+                     @dragstart="onDragStart(eIndex, $event)"
+                     @dragover.prevent
+                     @dragenter="onDragEnter(eIndex)"
+                     @drop="onDrop(eIndex)"
+                     @dragend="onDragEnd"
+                     class="relative group pl-6 transition-all duration-200 draggable-item"
+                     :class="[
+                        event.type === 'transit' ? 'transit-line' : '',
+                        draggedIndex === eIndex ? 'dragging' : ''
+                     ]">
+                    
+                    <div class="absolute -left-[21px] top-1 z-10 transition-colors bg-white flex items-center justify-center"
+                         :class="event.type === 'transit' ? 'w-6 h-6 border-2 border-gray-300 rounded-full text-[10px]' : 'w-3 h-3 border-2 border-winter rounded-full mt-1'">
+                         <span v-if="event.type === 'transit'">{{ getTransportIcon(event.transportMode) }}</span>
+                    </div>
+                    
+                    <div class="p-4 rounded-2xl soft-shadow transition-all active:scale-[0.99] border relative"
+                         :class="event.type === 'transit' ? 'bg-slate-50 border-gray-200' : 'bg-white border-transparent'">
+                        
+                        <div class="absolute top-2 right-2 text-gray-300 cursor-grab p-1 drag-handle hover:text-winter">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+                        </div>
+
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1 pr-8">
+                                <div class="font-bold text-xs tracking-wider mb-2 flex items-center"
+                                     :class="event.type === 'transit' ? 'text-gray-400' : 'text-winter'">
+                                    {{ event.time }}
+                                    <span v-if="event.type === 'transit'" class="ml-2 bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded text-[10px]">
+                                        {{ event.transportMode }}
+                                    </span>
+                                </div>
+                                
+                                <div v-if="event.type === 'transit'">
+                                    <div class="flex flex-col space-y-1">
+                                        <div class="flex items-center text-gray-700 font-bold"><span class="text-xs text-gray-400 w-8">From</span><span>{{ event.origin }}</span></div>
+                                        <div class="ml-1 border-l-2 border-dashed border-gray-300 h-3"></div>
+                                        <div class="flex items-center text-gray-700 font-bold"><span class="text-xs text-gray-400 w-8">To</span><span>{{ event.destination }}</span></div>
+                                    </div>
+                                    <a :href="getGoogleMapsLink(event.origin, event.destination)" target="_blank" class="mt-3 inline-flex items-center text-[10px] bg-white border border-gray-300 px-3 py-1.5 rounded-full text-gray-500 hover:text-winter hover:border-winter transition-colors">🔍 Check Route</a>
+                                    <p v-if="event.note" class="text-gray-500 text-xs mt-2 bg-white p-2 rounded border border-gray-100 whitespace-pre-wrap">{{ event.note }}</p>
+                                </div>
+                                <div v-else>
+                                    <h3 class="font-bold text-lg mb-1 text-gray-700">{{ event.location }}</h3>
+                                    <p v-if="event.note" class="text-gray-400 text-xs whitespace-pre-wrap bg-gray-50 p-2 rounded leading-relaxed mt-1">{{ event.note }}</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-col space-y-2 mt-6">
+                                <button @click="openEditModal(eIndex)" class="text-gray-300 hover:text-winter p-1">✎</button>
+                                <button @click="deleteEvent(eIndex)" class="text-gray-300 hover:text-red-400 p-1">×</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button @click="openAddModal" class="fixed bottom-8 right-6 bg-gray-800 text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center text-2xl z-20 hover:scale-105 transition-transform">+</button>
+        </div>
+
+        <div v-if="currentTab === 'money'" class="space-y-6">
+            <div class="bg-gray-50 p-4 rounded-2xl flex justify-between items-center">
+                <span class="text-xs font-bold text-gray-400 uppercase">Rate</span>
+                <div class="flex items-center"><span class="text-xs mr-2 text-gray-400">1 JPY =</span><input v-model.number="exchangeRate" type="number" step="0.001" class="w-16 bg-white border-none rounded text-center text-sm font-bold text-gray-700"><span class="text-xs ml-2 text-gray-400">TWD</span></div>
+            </div>
+            <div class="bg-white p-6 rounded-3xl soft-shadow text-center relative overflow-hidden border-t-4 border-winter">
+                <h2 class="text-xs font-bold tracking-widest text-gray-400 uppercase mb-2">Total Expenses</h2>
+                <div class="flex flex-col items-center justify-center mb-4">
+                    <span class="text-3xl font-light text-gray-800">¥{{ totalSpent }}</span>
+                    <span class="text-sm font-bold text-winter mt-1">≈ NT$ {{ Math.round(totalSpent * exchangeRate) }}</span>
+                </div>
+                <div class="border-t border-gray-100 pt-4 grid grid-cols-2 gap-4">
+                    <div><div class="text-[10px] text-gray-400 uppercase tracking-widest mb-1">Per Person</div><div class="text-gray-600 font-bold">¥{{ perPersonShare }}</div></div>
+                    <div><div class="text-[10px] text-gray-400 uppercase tracking-widest mb-1">In TWD</div><div class="text-winter font-bold">${{ Math.round(perPersonShare * exchangeRate) }}</div></div>
+                </div>
+            </div>
+            <div class="space-y-3">
+                 <div v-for="person in people" :key="person.name" class="flex justify-between items-center bg-white px-5 py-4 rounded-xl border border-gray-100">
+                    <span class="font-medium text-gray-600">{{ person.name }}</span>
+                    <span :class="person.balance >= 0 ? 'text-emerald-500' : 'text-rose-400'" class="font-mono text-sm font-bold">{{ person.balance >= 0 ? '收' : '付' }} ${{ Math.round(Math.abs(person.balance) * exchangeRate) }}</span>
+                </div>
+            </div>
+            <div class="pb-10">
+                <div class="flex justify-between items-center px-2 mb-4">
+                    <h3 class="text-sm font-bold text-gray-800">History</h3>
+                    <button @click="showExpenseModal = true" class="text-xs bg-winter text-white px-3 py-1 rounded-full">Record</button>
+                </div>
+                <div class="space-y-3">
+                    <div v-for="(record, index) in expenses" :key="index" class="flex justify-between items-center p-3 bg-white rounded-xl border border-gray-50">
+                        <div><div class="text-gray-800 font-bold text-sm">{{ record.item }}</div><div class="text-[10px] text-gray-400">{{ record.payer }} • ¥{{ record.amount }}</div></div>
+                        <div class="text-right"><div class="font-bold text-winter text-sm">NT$ {{ Math.round(record.amount * exchangeRate) }}</div><button @click="deleteExpense(index)" class="text-[10px] text-gray-300">del</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div v-if="showDataModal" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm p-6 rounded-3xl shadow-2xl">
+            <h3 class="text-lg font-bold mb-4 text-gray-800 flex items-center justify-between">
+                <span>⚙️ 資料管理</span>
+                <button @click="showDataModal = false" class="text-gray-400 hover:text-gray-600">×</button>
+            </h3>
+            
+            <div class="space-y-4">
+                <div class="bg-gray-50 p-4 rounded-xl">
+                    <div class="text-xs font-bold text-gray-400 uppercase mb-2">備份 / 還原 (本機)</div>
+                    <div class="flex gap-2">
+                        <button @click="exportData" class="flex-1 bg-winter text-white py-2 rounded-lg text-sm font-bold shadow-sm active:scale-95 transition-transform">匯出檔案</button>
+                        <label class="flex-1 bg-white border border-gray-200 text-gray-600 py-2 rounded-lg text-sm font-bold shadow-sm text-center cursor-pointer active:scale-95 transition-transform">
+                            匯入檔案
+                            <input type="file" @change="importData" class="hidden" accept=".json">
+                        </label>
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-2">*下載 .json 檔，換手機時可匯入還原。</p>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <div class="text-xs font-bold text-slate-400 uppercase mb-2">永久保存 (GitHub)</div>
+                    <p class="text-[10px] text-gray-500 mb-2">產生程式碼後，請複製並貼回 GitHub 的 index.html，覆蓋原有的 days 設定，即可永久保存。</p>
+                    <button @click="copyCodeToClipboard" class="w-full bg-slate-700 text-white py-2 rounded-lg text-sm font-bold shadow-sm flex justify-center items-center active:scale-95 transition-transform">
+                        <span v-if="copySuccess">已複製！✅</span>
+                        <span v-else>複製程式碼 📋</span>
+                    </button>
+                </div>
+                
+                <div class="pt-2 border-t border-gray-100">
+                    <button @click="resetData" class="w-full text-red-400 text-xs font-bold py-2 hover:bg-red-50 rounded-lg">重置所有資料 (清空)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div v-if="showAddModal" class="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-end justify-center sm:items-center">
+        <div class="bg-white w-full max-w-sm p-6 rounded-t-3xl sm:rounded-3xl shadow-2xl mb-safe sm:mb-0 transition-all max-h-[90vh] overflow-y-auto">
+            <h3 class="text-lg font-bold mb-4 text-gray-800 flex items-center justify-between">{{ isEditing ? 'Edit' : 'Add' }} Plan</h3>
+            <div class="flex bg-gray-100 p-1 rounded-xl mb-4">
+                <button @click="tempEvent.type = 'spot'" :class="tempEvent.type === 'spot' ? 'bg-white text-winter shadow-sm' : 'text-gray-400'" class="flex-1 py-2 rounded-lg text-sm font-bold transition-all">📍 景點</button>
+                <button @click="tempEvent.type = 'transit'" :class="tempEvent.type === 'transit' ? 'bg-white text-gray-600 shadow-sm' : 'text-gray-400'" class="flex-1 py-2 rounded-lg text-sm font-bold transition-all">🚆 交通</button>
+            </div>
+
+            <div class="space-y-4">
+                <input v-model="tempEvent.time" type="time" class="w-full bg-gray-50 p-3 rounded-xl border-none font-bold text-gray-600 focus:ring-1 focus:ring-winter">
+                
+                <div v-if="tempEvent.type === 'spot'" class="space-y-4">
+                    <input v-model="tempEvent.location" type="text" placeholder="Location Name" class="w-full bg-gray-50 p-3 rounded-xl border-none focus:ring-1 focus:ring-winter">
+                    <textarea v-model="tempEvent.note" placeholder="Note" class="w-full bg-gray-50 p-3 rounded-xl border-none h-20 resize-none focus:ring-1 focus:ring-winter"></textarea>
+                </div>
+
+                <div v-if="tempEvent.type === 'transit'" class="space-y-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <div class="flex flex-col space-y-3">
+                        <div class="relative"><span class="absolute left-3 top-3 text-xs text-gray-400 font-bold">A</span><input v-model="tempEvent.origin" type="text" placeholder="From" class="w-full pl-8 bg-white p-3 rounded-xl border border-gray-200 focus:border-winter outline-none text-sm"></div>
+                        <div class="relative"><span class="absolute left-3 top-3 text-xs text-gray-400 font-bold">B</span><input v-model="tempEvent.destination" type="text" placeholder="To" class="w-full pl-8 bg-white p-3 rounded-xl border border-gray-200 focus:border-winter outline-none text-sm"></div>
+                    </div>
+                    <div v-if="tempEvent.origin && tempEvent.destination">
+                         <a :href="getGoogleMapsLink(tempEvent.origin, tempEvent.destination)" target="_blank" class="block w-full text-center bg-blue-50 text-blue-600 py-2 rounded-xl text-xs font-bold border border-blue-100 hover:bg-blue-100 mb-2">🔎 Find on Google Maps</a>
+                    </div>
+                    
+                    <div>
+                        <textarea v-model="tempEvent.note" placeholder="詳細資訊" class="w-full bg-white p-3 rounded-xl border border-gray-200 h-20 resize-none focus:border-winter text-xs mb-2"></textarea>
+                        <div class="text-[10px] text-gray-400 font-bold mb-1">快速輸入:</div>
+                        <div class="flex flex-wrap gap-2">
+                            <button @click="addToNote('JR山手線 ')" class="bg-green-100 text-green-700 px-2 py-1 rounded-lg text-[10px] font-bold">JR山手線</button>
+                            <button @click="addToNote('銀座線 ')" class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-lg text-[10px] font-bold">銀座線</button>
+                            <button @click="addToNote('地下鐵 ')" class="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg text-[10px] font-bold">地下鐵</button>
+                             <button @click="addToNote('新幹線 ')" class="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg text-[10px] font-bold">新幹線</button>
+                            <button @click="addToNote('¥180 ')" class="bg-gray-200 text-gray-600 px-2 py-1 rounded-lg text-[10px] font-bold">¥180</button>
+                            <button @click="addToNote('¥210 ')" class="bg-gray-200 text-gray-600 px-2 py-1 rounded-lg text-[10px] font-bold">¥210</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-gray-400 font-bold ml-1 mb-1 block">Mode (含 Car):</label>
+                        <div class="grid grid-cols-4 gap-2">
+                            <button v-for="mode in ['Train', 'Subway', 'Bus', 'Taxi', 'Car', 'Walk']" :key="mode" @click="tempEvent.transportMode = mode" :class="tempEvent.transportMode === mode ? 'bg-gray-700 text-white' : 'bg-white text-gray-500 border border-gray-200'" class="py-2 rounded-lg text-xs font-bold transition-colors">{{ getTransportIcon(mode) }} {{ mode }}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button @click="showAddModal = false" class="flex-1 py-3 text-gray-400 bg-gray-100 rounded-xl font-bold">Cancel</button>
+                <button @click="saveEvent" class="flex-1 py-3 text-white rounded-xl font-bold shadow-md" :class="tempEvent.type === 'spot' ? 'bg-winter' : 'bg-slate-500'">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div v-if="showExpenseModal" class="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-end justify-center sm:items-center">
+        <div class="bg-white w-full max-w-sm p-6 rounded-t-3xl sm:rounded-3xl shadow-2xl mb-safe sm:mb-0">
+            <h3 class="text-lg font-bold mb-4 text-gray-800">Add Cost (JPY)</h3>
+            <div class="flex gap-2 mb-3"><button v-for="p in peopleNames" :key="p" @click="newExpense.payer = p" :class="newExpense.payer === p ? 'bg-winter text-white' : 'bg-gray-100 text-gray-400'" class="flex-1 py-2 rounded-lg text-xs font-bold transition-colors">{{ p }}</button></div>
+            <input v-model="newExpense.item" type="text" placeholder="Item Name" class="w-full mb-3 bg-gray-50 p-3 rounded-xl border-none">
+            <input v-model.number="newExpense.amount" type="number" placeholder="¥ Amount" class="w-full mb-4 bg-gray-50 p-3 rounded-xl border-none" inputmode="numeric">
+            <div class="flex gap-3"><button @click="showExpenseModal = false" class="flex-1 py-3 text-gray-400 bg-gray-100 rounded-xl font-bold">Cancel</button><button @click="addExpense" class="flex-1 py-3 text-white bg-winter rounded-xl font-bold">Save</button></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const { createApp, ref, computed, onMounted, watch, nextTick } = Vue;
+    createApp({
+        setup() {
+            const currentTab = ref('schedule');
+            const showAddModal = ref(false);
+            const showExpenseModal = ref(false);
+            const showDataModal = ref(false); // Data Management Modal
+            const copySuccess = ref(false);
+            const currentDayIndex = ref(0);
+            const exchangeRate = ref(0.215);
+            const mapLoading = ref(false);
+            const isEditing = ref(false);
+            const editingIndex = ref(null);
+            
+            // Drag and Drop State
+            const draggedIndex = ref(null);
+
+            // --- 預先載入行程 Day 0 & Day 1 ---
+            const days = ref([
+                { 
+                    date: '2026-02-20', 
+                    events: [
+                        { id: 1, type: 'spot', time: '15:30', location: '三重捷運站', note: '集合' },
+                        { id: 2, type: 'spot', time: '17:00', location: '桃園機場第一航廈', note: '準備出發！' }
+                    ] 
+                },
+                { 
+                    date: '2026-02-21', 
+                    events: [
+                        { id: 3, type: 'spot', time: '06:00', location: '羽田機場第三航廈', note: '抵達東京' },
+                        { id: 4, type: 'spot', time: '07:00', location: '東京大飯店', note: '寄放行李' },
+                        { id: 5, type: 'spot', time: '08:00', location: '東京鐵塔', note: '拍照點: https://goo.gl/maps/...' },
+                        { id: 6, type: 'spot', time: '09:30', location: 'Misojyu', note: '早餐\n橘子街\n淺草文化觀光中心(5F景觀台)' },
+                        { id: 7, type: 'spot', time: '10:30', location: '淺草寺', note: '雷門、仲見世商店街、五重塔、淺草寺本堂 (求籤!)' },
+                        { id: 8, type: 'spot', time: '11:40', location: 'にょろ助', note: '午餐 (鰻魚飯)' },
+                        { id: 9, type: 'spot', time: '13:00', location: 'Torinoiru Cafe', note: '貓頭鷹咖啡廳 (Yanaka Honten)\n*搭公車前往' },
+                        { id: 10, type: 'spot', time: '14:30', location: '秋葉原電器街', note: '逛街清單:\nAnimate\nAKIHABARA Gamers\n駿河屋\nMandarake Complex\nSuper Potato\nGIGO\nRadio會館\n有都八喜6F(麵包超人冰箱貼)\n秋葉原扭蛋會館' },
+                        { id: 11, type: 'spot', time: '17:00', location: '東京地下街', note: '逛街' },
+                        { id: 12, type: 'spot', time: '19:30', location: '阿利夫拉麵 (AFURI)', note: '晚餐' },
+                        { id: 13, type: 'spot', time: '21:00', location: '東京大飯店', note: '回飯店休息' }
+                    ] 
+                }
+            ]);
+
+            const tempEvent = ref({ type: 'spot', time: '', location: '', origin: '', destination: '', transportMode: 'Train', note: '' });
+            const peopleNames = ['羊羊', '董董']; 
+            
+            const expenses = ref([]);
+            const newExpense = ref({ payer: '羊羊', item: '', amount: '' });
+            const weatherData = ref({});
+            let map = null, markers = [];
+
+            // --- Logic ---
+            const openAddModal = () => { isEditing.value = false; editingIndex.value = null; tempEvent.value = { type: 'spot', time: '', location: '', origin: '', destination: '', transportMode: 'Train', note: '' }; showAddModal.value = true; };
+            const openEditModal = (index) => { isEditing.value = true; editingIndex.value = index; tempEvent.value = JSON.parse(JSON.stringify(days.value[currentDayIndex.value].events[index])); if(!tempEvent.value.type) tempEvent.value.type = 'spot'; if(!tempEvent.value.transportMode) tempEvent.value.transportMode = 'Train'; showAddModal.value = true; };
+            const addToNote = (text) => { tempEvent.value.note = (tempEvent.value.note || '') + text; };
+
+            const saveEvent = () => {
+                if (tempEvent.value.type === 'spot' && !tempEvent.value.location) return alert('Location required');
+                if (tempEvent.value.type === 'transit' && (!tempEvent.value.origin || !tempEvent.value.destination)) return alert('Origin & Destination required');
+                if (tempEvent.value.type === 'transit') tempEvent.value.location = `${tempEvent.value.origin} ➝ ${tempEvent.value.destination}`;
+                
+                if (isEditing.value && editingIndex.value !== null) { 
+                    days.value[currentDayIndex.value].events[editingIndex.value] = { 
+                        ...days.value[currentDayIndex.value].events[editingIndex.value], 
+                        ...tempEvent.value 
+                    }; 
+                } else { 
+                    days.value[currentDayIndex.value].events.push({ id: Date.now(), ...tempEvent.value }); 
+                }
+                showAddModal.value = false; 
+                refreshMap();
+            };
+            
+            const deleteEvent = (index) => { if(confirm('Delete?')) { days.value[currentDayIndex.value].events.splice(index, 1); refreshMap(); }};
+            const getGoogleMapsLink = (o, d) => `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(o)}&destination=${encodeURIComponent(d)}&travelmode=transit`;
+            const getTransportIcon = (m) => ({ 'Train': '🚆', 'Subway': '🚇', 'Bus': '🚌', 'Taxi': '🚕', 'Car': '🚗', 'Walk': '🚶' }[m] || '🚆');
+
+            // --- Data Management Logic (Export/Import/Copy) ---
+            const exportData = () => {
+                const data = { days: days.value, expenses: expenses.value, exchangeRate: exchangeRate.value };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = `2026JP_Backup_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url);
+            };
+
+            const importData = (event) => {
+                const file = event.target.files[0]; if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const parsed = JSON.parse(e.target.result);
+                        if(confirm('確定要覆蓋目前的行程嗎？')) {
+                            days.value = parsed.days || days.value; expenses.value = parsed.expenses || expenses.value; exchangeRate.value = parsed.exchangeRate || exchangeRate.value;
+                            showDataModal.value = false; refreshMap(); alert('匯入成功！');
+                        }
+                    } catch (err) { alert('檔案格式錯誤！'); }
+                }; reader.readAsText(file);
+            };
+
+            const copyCodeToClipboard = () => {
+                const jsonString = JSON.stringify(days.value, null, 4);
+                const codeSnippet = `const days = ref(${jsonString});`;
+                navigator.clipboard.writeText(codeSnippet).then(() => {
+                    copySuccess.value = true; setTimeout(() => copySuccess.value = false, 2000);
+                    alert('程式碼已複製！\n\n請去 GitHub 編輯 index.html，\n找到 "const days = ref([...]);" \n並用這段新的程式碼覆蓋它。');
+                });
+            };
+
+            const resetData = () => { if(confirm('警告：這會清空手機上的所有資料回復預設值！確定嗎？')) { localStorage.removeItem('2026JP_Complete_v1'); location.reload(); }};
+
+            // --- Drag and Drop ---
+            const onDragStart = (index, event) => { draggedIndex.value = index; event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.dropEffect = 'move'; };
+            const onDragEnter = (index) => { };
+            const onDrop = (index) => {
+                const list = days.value[currentDayIndex.value].events;
+                const draggedItem = list[draggedIndex.value];
+                list.splice(draggedIndex.value, 1);
+                list.splice(index, 0, draggedItem);
+                draggedIndex.value = null;
+                refreshMap();
+            };
+            const onDragEnd = () => { draggedIndex.value = null; };
+
+            // Map Logic
+            const initOrUpdateMap = async () => { if (currentTab.value !== 'schedule') return; await nextTick(); if (!map) { map = L.map('schedule-map', { zoomControl: false }).setView([35.6895, 139.6917], 13); L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '', maxZoom: 19 }).addTo(map); } refreshMap(); };
+            const refreshMap = async () => { if (!map) return; mapLoading.value = true; markers.forEach(m => map.removeLayer(m)); markers = []; const events = days.value[currentDayIndex.value].events; const bounds = L.latLngBounds(); let hasPins = false; for (const event of events) { if (event.type === 'spot') { try { const query = encodeURIComponent(event.location + " Tokyo"); const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`); const data = await res.json(); if (data && data.length > 0) { const lat = data[0].lat; const lon = data[0].lon; const pin = L.marker([lat, lon]).addTo(map); pin.bindPopup(`<b>${event.time}</b><br>${event.location}`); markers.push(pin); bounds.extend([lat, lon]); hasPins = true; } await new Promise(r => setTimeout(r, 600)); } catch(e) {} } } if (hasPins) map.fitBounds(bounds, { padding: [30, 30] }); mapLoading.value = false; };
+            const changeDay = (index) => { currentDayIndex.value = index; setTimeout(() => refreshMap(), 300); };
+            watch(currentTab, (newTab) => { if (newTab === 'schedule') { setTimeout(() => { if(map) map.invalidateSize(); else initOrUpdateMap(); }, 100); }});
+
+            // Expense Logic
+            const addExpense = () => { if (!newExpense.value.item || !newExpense.value.amount) return; expenses.value.unshift({ ...newExpense.value }); newExpense.value = { payer: '羊羊', item: '', amount: '' }; showExpenseModal.value = false; };
+            const deleteExpense = (i) => expenses.value.splice(i, 1);
+            const totalSpent = computed(() => expenses.value.reduce((sum, i) => sum + (i.amount || 0), 0));
+            const perPersonShare = computed(() => peopleNames.length ? Math.round(totalSpent.value / peopleNames.length) : 0);
+            const people = computed(() => peopleNames.map(name => { const paid = expenses.value.filter(e => e.payer === name).reduce((sum, e) => sum + (e.amount || 0), 0); return { name, balance: paid - perPersonShare.value }; }));
+
+            // Save Key
+            const saveKey = '2026JP_Complete_v1';
+            watch([days, expenses, exchangeRate], () => { localStorage.setItem(saveKey, JSON.stringify({ days: days.value, expenses: expenses.value, exchangeRate: exchangeRate.value })); }, { deep: true });
+            
+            onMounted(() => { 
+                const saved = localStorage.getItem(saveKey); 
+                if (saved) { 
+                    const parsed = JSON.parse(saved); 
+                    if(parsed.days && parsed.days.length > 0) days.value = parsed.days; 
+                    expenses.value = parsed.expenses || expenses.value; 
+                    exchangeRate.value = parsed.exchangeRate || 0.215; 
+                } 
+                fetch('https://api.open-meteo.com/v1/forecast?latitude=35.6895&longitude=139.6917&current=temperature_2d&timezone=Asia%2FTokyo').then(res => res.json()).then(data => weatherData.value = data); 
+                initOrUpdateMap(); 
+            });
+
+            return { 
+                currentTab, showAddModal, showExpenseModal, showDataModal, currentDayIndex, days, tempEvent, isEditing, 
+                openAddModal, openEditModal, saveEvent, deleteEvent, 
+                peopleNames, expenses, newExpense, addExpense, deleteExpense, 
+                totalSpent, perPersonShare, people, exchangeRate, 
+                weatherData, mapLoading, refreshMap, changeDay, getGoogleMapsLink, getTransportIcon, addToNote, 
+                // Export/Import
+                exportData, importData, copyCodeToClipboard, copySuccess, resetData,
+                // Drag & Drop
+                onDragStart, onDragEnter, onDrop, onDragEnd, draggedIndex,
+                addDay: () => days.value.push({date:'', events:[]}) 
+            };
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>
