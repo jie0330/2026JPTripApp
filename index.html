@@ -333,7 +333,56 @@
                     ] 
                 }
             ]);
-            const expenses = ref([]);
+            const expenses = ref([
+    {
+        "type": "transfer",
+        "payer": "董董",
+        "payee": "羊羊",
+        "item": "",
+        "amount": 20000,
+        "currency": "TWD"
+    },
+    {
+        "type": "expense",
+        "payer": "羊羊",
+        "payee": "董董",
+        "item": "東京大飯店(3天2夜)",
+        "amount": 9475,
+        "currency": "TWD"
+    },
+    {
+        "type": "expense",
+        "payer": "羊羊",
+        "payee": "董董",
+        "item": "AIRDO回程機票",
+        "amount": 3755,
+        "currency": "TWD"
+    },
+    {
+        "type": "expense",
+        "payer": "羊羊",
+        "payee": "董董",
+        "item": "JAL去程機票",
+        "amount": 4712,
+        "currency": "TWD"
+    },
+    {
+        "type": "expense",
+        "payer": "羊羊",
+        "payee": "董董",
+        "item": "樂桃回程機票",
+        "amount": 13908,
+        "currency": "TWD"
+    },
+    {
+        "type": "expense",
+        "payer": "羊羊",
+        "payee": "董董",
+        "item": "樂桃去程機票",
+        "amount": 12620,
+        "currency": "TWD"
+    }
+]);
             const exchangeRate = ref(0.215);
             // -------------------------------------------------------------
 
@@ -447,3 +496,4 @@
 </script>
 </body>
 </html>
+
