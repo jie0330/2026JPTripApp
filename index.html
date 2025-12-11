@@ -11,17 +11,16 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        /* --- 配色設定：迷霧藍 (比剛剛更深一點、更飽和) --- */
+        /* --- 配色設定：迷霧藍 (Misty Blue) --- */
         :root { 
-            --bg-color: #e0ebf3; /* 加深的藍灰底色 */
-            --winter: #71a1cb;   /* 莫蘭迪藍 (主題色) */
+            --bg-color: #e0ebf3;
+            --winter: #71a1cb;
             --winter-dark: #5a8ab5; 
         }
         body {
             font-family: 'M PLUS Rounded 1c', sans-serif;
             background-color: var(--bg-color);
-            color: #334155; /* Slate 700 (更深的文字以增加對比) */
-            /* 背景紋理 */
+            color: #334155;
             background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
             background-size: 20px 20px;
         }
@@ -29,19 +28,14 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
         .pt-safe { padding-top: env(safe-area-inset-top); }
-        
-        /* 卡片陰影 */
         .soft-shadow { box-shadow: 0 4px 15px rgba(94, 134, 169, 0.1); }
         
         #schedule-map { width: 100%; height: 100%; z-index: 1; }
         .leaflet-popup-content-wrapper { border-radius: 8px; font-weight: bold; font-size: 12px; padding: 2px; }
-        
-        /* 交通連接線 */
         .transit-line::before {
             content: ''; position: absolute; left: -20px; top: 24px; bottom: -24px; width: 2px;
             background-image: linear-gradient(to bottom, #94a3b8 50%, transparent 50%); background-size: 2px 10px; z-index: 0;
         }
-        
         .draggable-item { cursor: grab; }
         .draggable-item:active { cursor: grabbing; }
         .dragging { opacity: 0.6; transform: scale(0.98); background-color: #f1f5f9; border: 2px dashed #71a1cb; }
@@ -65,7 +59,6 @@
                     2026''冬の旅 <span class="text-base ml-2 text-winter">❄️</span>
                 </h1>
             </div>
-            
             <div class="flex items-center gap-3">
                 <button v-if="currentTab === 'schedule'" @click="refreshMap" class="text-[10px] bg-winter/10 text-winter px-2 py-1 rounded-full border border-winter/20 active:bg-winter active:text-white transition-colors flex items-center">
                     <span class="mr-1">↻</span> Map
@@ -103,7 +96,7 @@
 
     <main class="flex-1 overflow-y-auto p-6 pb-6 scroll-smooth relative">
         <div v-if="currentTab === 'schedule'" class="space-y-6">
-            <div class="relative w-full h-56 rounded-3xl overflow-hidden soft-shadow border border-white bg-white">
+            <div class="relative w-full h-56 rounded-3xl overflow-hidden soft-shadow border border-white bg-gray-100">
                 <div id="schedule-map"></div>
                 <div v-if="mapLoading" class="absolute inset-0 bg-white/60 backdrop-blur-sm z-[1000] flex items-center justify-center pointer-events-none">
                     <div class="text-xs font-bold text-winter animate-pulse">Updating Pins...</div>
@@ -185,40 +178,56 @@
                     </div>
                 </div>
             </div>
-            <button @click="openAddModal" class="fixed bottom-8 right-6 bg-slate-700 text-white w-14 h-14 rounded-full shadow-xl shadow-slate-400/50 flex items-center justify-center text-2xl z-20 hover:scale-105 transition-transform">+</button>
+            <button @click="openAddModal" class="fixed bottom-8 right-6 bg-slate-700 text-white w-14 h-14 rounded-full shadow-xl shadow-slate-400/50 flex items-center justify-center text-2xl z-20 hover:scale-105 transition-transform bg-gradient-to-br from-gray-700 to-gray-800">+</button>
         </div>
 
         <div v-if="currentTab === 'money'" class="space-y-6">
             <div class="bg-white p-4 rounded-2xl flex justify-between items-center border border-white soft-shadow">
-                <span class="text-xs font-bold text-gray-400 uppercase">Rate</span>
+                <span class="text-xs font-bold text-gray-400 uppercase">Rate Setting</span>
                 <div class="flex items-center"><span class="text-xs mr-2 text-gray-400">1 JPY =</span><input v-model.number="exchangeRate" type="number" step="0.001" class="w-16 bg-gray-50 border-none rounded text-center text-sm font-bold text-gray-700"><span class="text-xs ml-2 text-gray-400">TWD</span></div>
             </div>
             <div class="bg-white p-6 rounded-3xl soft-shadow text-center relative overflow-hidden border-t-4 border-winter">
-                <h2 class="text-xs font-bold tracking-widest text-gray-400 uppercase mb-2">Total Expenses</h2>
+                <h2 class="text-xs font-bold tracking-widest text-gray-400 uppercase mb-2">Total Expenses (Est.)</h2>
                 <div class="flex flex-col items-center justify-center mb-4">
-                    <span class="text-3xl font-light text-gray-800">¥{{ totalSpent }}</span>
-                    <span class="text-sm font-bold text-winter mt-1">≈ NT$ {{ Math.round(totalSpent * exchangeRate) }}</span>
+                    <span class="text-3xl font-light text-gray-800">¥{{ totalSpentJPY.toLocaleString() }}</span>
+                    <span class="text-sm font-bold text-winter mt-1">≈ NT$ {{ Math.round(totalSpentJPY * exchangeRate).toLocaleString() }}</span>
                 </div>
                 <div class="border-t border-gray-100 pt-4 grid grid-cols-2 gap-4">
-                    <div><div class="text-[10px] text-gray-400 uppercase tracking-widest mb-1">Per Person</div><div class="text-gray-600 font-bold">¥{{ perPersonShare }}</div></div>
-                    <div><div class="text-[10px] text-gray-400 uppercase tracking-widest mb-1">In TWD</div><div class="text-winter font-bold">${{ Math.round(perPersonShare * exchangeRate) }}</div></div>
+                    <div><div class="text-[10px] text-gray-400 uppercase tracking-widest mb-1">Per Person</div><div class="text-gray-600 font-bold">¥{{ Math.round(totalSpentJPY / peopleNames.length).toLocaleString() }}</div></div>
+                    <div><div class="text-[10px] text-gray-400 uppercase tracking-widest mb-1">In TWD</div><div class="text-winter font-bold">${{ Math.round((totalSpentJPY * exchangeRate) / peopleNames.length).toLocaleString() }}</div></div>
                 </div>
             </div>
             <div class="space-y-3">
                  <div v-for="person in people" :key="person.name" class="flex justify-between items-center bg-white px-5 py-4 rounded-xl border border-white soft-shadow">
                     <span class="font-medium text-gray-600">{{ person.name }}</span>
-                    <span :class="person.balance >= 0 ? 'text-emerald-500' : 'text-rose-400'" class="font-mono text-sm font-bold">{{ person.balance >= 0 ? '收' : '付' }} ${{ Math.round(Math.abs(person.balance) * exchangeRate) }}</span>
+                    <span :class="person.balance >= 0 ? 'text-emerald-500' : 'text-rose-400'" class="font-mono text-sm font-bold">{{ person.balance >= 0 ? '收' : '付' }} ${{ Math.round(Math.abs(person.balance) * exchangeRate).toLocaleString() }}</span>
                 </div>
             </div>
             <div class="pb-10">
                 <div class="flex justify-between items-center px-2 mb-4">
                     <h3 class="text-sm font-bold text-gray-600">History</h3>
-                    <button @click="showExpenseModal = true" class="text-xs bg-winter text-white px-3 py-1 rounded-full">Record</button>
+                    <button @click="openAddExpense" class="text-xs bg-winter text-white px-3 py-1 rounded-full shadow-sm hover:bg-winter-dark">Record</button>
                 </div>
                 <div class="space-y-3">
                     <div v-for="(record, index) in expenses" :key="index" class="flex justify-between items-center p-3 bg-white rounded-xl border border-white soft-shadow">
-                        <div><div class="text-gray-800 font-bold text-sm">{{ record.item }}</div><div class="text-[10px] text-gray-400">{{ record.payer }} • ¥{{ record.amount }}</div></div>
-                        <div class="text-right"><div class="font-bold text-winter text-sm">NT$ {{ Math.round(record.amount * exchangeRate) }}</div><button @click="deleteExpense(index)" class="text-[10px] text-gray-300">del</button></div>
+                        <div>
+                            <div class="text-gray-800 font-bold text-sm">{{ record.item }}</div>
+                            <div class="text-[10px] text-gray-400 flex items-center gap-1">
+                                <span>{{ record.payer }}</span> • 
+                                <span :class="record.currency === 'TWD' ? 'text-emerald-500 font-bold' : ''">
+                                    {{ record.currency === 'TWD' ? 'NT$' : '¥' }} {{ record.amount.toLocaleString() }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-right flex flex-col items-end">
+                            <div class="font-bold text-winter text-xs">
+                                {{ record.currency === 'TWD' ? `(¥${Math.round(record.amount / exchangeRate)})` : `(NT$${Math.round(record.amount * exchangeRate)})` }}
+                            </div>
+                            <div class="flex gap-2 mt-1">
+                                <button @click="openEditExpense(index)" class="text-[10px] text-gray-400 hover:text-winter">✎</button>
+                                <button @click="deleteExpense(index)" class="text-[10px] text-gray-300 hover:text-red-400">×</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -311,12 +320,28 @@
     </div>
 
     <div v-if="showExpenseModal" class="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-end justify-center sm:items-center">
-        <div class="bg-white w-full max-w-sm p-6 rounded-t-3xl sm:rounded-3xl shadow-2xl mb-safe sm:mb-0">
-            <h3 class="text-lg font-bold mb-4 text-gray-800">Add Cost (JPY)</h3>
-            <div class="flex gap-2 mb-3"><button v-for="p in peopleNames" :key="p" @click="newExpense.payer = p" :class="newExpense.payer === p ? 'bg-winter text-white' : 'bg-gray-100 text-gray-400'" class="flex-1 py-2 rounded-lg text-xs font-bold transition-colors">{{ p }}</button></div>
-            <input v-model="newExpense.item" type="text" placeholder="Item Name" class="w-full mb-3 bg-gray-50 p-3 rounded-xl border-none">
-            <input v-model.number="newExpense.amount" type="number" placeholder="¥ Amount" class="w-full mb-4 bg-gray-50 p-3 rounded-xl border-none" inputmode="numeric">
-            <div class="flex gap-3"><button @click="showExpenseModal = false" class="flex-1 py-3 text-gray-400 bg-gray-100 rounded-xl font-bold">Cancel</button><button @click="addExpense" class="flex-1 py-3 text-white bg-winter rounded-xl font-bold">Save</button></div>
+        <div class="bg-white w-full max-w-sm p-6 rounded-t-3xl sm:rounded-3xl shadow-2xl mb-safe sm:mb-0 transition-all">
+            <h3 class="text-lg font-bold mb-4 text-gray-800 flex justify-between items-center">
+                <span>{{ isEditingExpense ? 'Edit Expense' : 'Add Expense' }}</span>
+                <span class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-400 font-normal">For All</span>
+            </h3>
+            
+            <div class="flex gap-2 mb-3">
+                <button v-for="p in peopleNames" :key="p" @click="newExpense.payer = p" :class="newExpense.payer === p ? 'bg-winter text-white' : 'bg-gray-100 text-gray-400'" class="flex-1 py-2 rounded-lg text-xs font-bold transition-colors">{{ p }} 先付</button>
+            </div>
+
+            <div class="flex bg-gray-100 p-1 rounded-xl mb-3">
+                <button @click="newExpense.currency = 'JPY'" :class="newExpense.currency === 'JPY' ? 'bg-white text-winter shadow-sm' : 'text-gray-400'" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all">¥ 日幣</button>
+                <button @click="newExpense.currency = 'TWD'" :class="newExpense.currency === 'TWD' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-400'" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all">NT$ 台幣</button>
+            </div>
+
+            <input v-model="newExpense.item" type="text" placeholder="項目 (例如: 晚餐)" class="w-full mb-3 bg-gray-50 p-3 rounded-xl border-none">
+            <input v-model.number="newExpense.amount" type="number" :placeholder="newExpense.currency === 'JPY' ? '¥ Amount' : 'NT$ Amount'" class="w-full mb-4 bg-gray-50 p-3 rounded-xl border-none" inputmode="numeric">
+            
+            <div class="flex gap-3">
+                <button @click="showExpenseModal = false" class="flex-1 py-3 text-gray-400 bg-gray-100 rounded-xl font-bold">Cancel</button>
+                <button @click="saveExpense" class="flex-1 py-3 text-white bg-winter rounded-xl font-bold shadow-md">{{ isEditingExpense ? 'Update' : 'Save' }}</button>
+            </div>
         </div>
     </div>
 </div>
@@ -334,8 +359,13 @@
             const currentDayIndex = ref(0);
             const exchangeRate = ref(0.215);
             const mapLoading = ref(false);
+            
+            // Edit States
             const isEditing = ref(false);
             const editingIndex = ref(null);
+            const isEditingExpense = ref(false); // New for expense edit
+            const editingExpenseIndex = ref(null); // New for expense edit
+            
             const draggedIndex = ref(null);
 
             // --- 預設資料 (羊&董) ---
@@ -367,8 +397,11 @@
 
             const tempEvent = ref({ type: 'spot', time: '', location: '', origin: '', destination: '', transportMode: 'Train', note: '', image: null });
             const peopleNames = ['羊羊', '董董']; 
+            
+            // Expense Data Structure Updated: currency default JPY
             const expenses = ref([]);
-            const newExpense = ref({ payer: '羊羊', item: '', amount: '' });
+            const newExpense = ref({ payer: '羊羊', item: '', amount: '', currency: 'JPY' });
+            
             const weatherData = ref({});
             let map = null, markers = [];
 
@@ -389,7 +422,7 @@
             };
             const viewImage = (img) => { previewImage.value = img; };
 
-            // --- Logic ---
+            // --- Event Logic ---
             const openAddModal = () => { isEditing.value = false; editingIndex.value = null; tempEvent.value = { type: 'spot', time: '', location: '', origin: '', destination: '', transportMode: 'Train', note: '', image: null }; showAddModal.value = true; };
             const openEditModal = (index) => { isEditing.value = true; editingIndex.value = index; tempEvent.value = JSON.parse(JSON.stringify(days.value[currentDayIndex.value].events[index])); if(!tempEvent.value.type) tempEvent.value.type = 'spot'; if(!tempEvent.value.transportMode) tempEvent.value.transportMode = 'Train'; showAddModal.value = true; };
             const addToNote = (text) => { tempEvent.value.note = (tempEvent.value.note || '') + text; };
@@ -402,16 +435,77 @@
                 else { days.value[currentDayIndex.value].events.push({ id: Date.now(), ...tempEvent.value }); }
                 showAddModal.value = false; refreshMap();
             };
-            
             const deleteEvent = (index) => { if(confirm('Delete?')) { days.value[currentDayIndex.value].events.splice(index, 1); refreshMap(); }};
             const getGoogleMapsLink = (o, d) => `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(o)}&destination=${encodeURIComponent(d)}&travelmode=transit`;
             const getTransportIcon = (m) => ({ 'Train': '🚆', 'Subway': '🚇', 'Bus': '🚌', 'Taxi': '🚕', 'Car': '🚗', 'Walk': '🚶' }[m] || '🚆');
 
+            // --- Expense Logic (Updated for Currency & Edit) ---
+            
+            const openAddExpense = () => {
+                isEditingExpense.value = false;
+                editingExpenseIndex.value = null;
+                newExpense.value = { payer: '羊羊', item: '', amount: '', currency: 'JPY' };
+                showExpenseModal.value = true;
+            };
+
+            const openEditExpense = (index) => {
+                isEditingExpense.value = true;
+                editingExpenseIndex.value = index;
+                // Clone existing data to newExpense for editing
+                newExpense.value = JSON.parse(JSON.stringify(expenses.value[index]));
+                // Compatibility check: ensure currency exists
+                if (!newExpense.value.currency) newExpense.value.currency = 'JPY';
+                showExpenseModal.value = true;
+            };
+
+            const saveExpense = () => {
+                if (!newExpense.value.item || !newExpense.value.amount) return alert('Please fill all fields');
+                
+                if (isEditingExpense.value && editingExpenseIndex.value !== null) {
+                    // Update
+                    expenses.value[editingExpenseIndex.value] = { ...newExpense.value };
+                } else {
+                    // Create (Add to top)
+                    expenses.value.unshift({ ...newExpense.value });
+                }
+                
+                showExpenseModal.value = false;
+            };
+
+            const deleteExpense = (i) => {
+                if(confirm('Delete this record?')) expenses.value.splice(i, 1);
+            };
+
+            // Calculated in JPY base
+            const totalSpentJPY = computed(() => {
+                return expenses.value.reduce((sum, item) => {
+                    if (item.currency === 'TWD') {
+                        // Convert TWD to JPY for total sum (Amount / Rate)
+                        return sum + (item.amount / exchangeRate.value);
+                    }
+                    return sum + item.amount;
+                }, 0);
+            });
+
+            const perPersonShare = computed(() => peopleNames.length ? Math.round(totalSpentJPY.value / peopleNames.length) : 0);
+            
+            const people = computed(() => peopleNames.map(name => {
+                // Calculate how much this person paid (converted to JPY base)
+                const paidInJPY = expenses.value
+                    .filter(e => e.payer === name)
+                    .reduce((sum, e) => {
+                        if (e.currency === 'TWD') return sum + (e.amount / exchangeRate.value);
+                        return sum + e.amount;
+                    }, 0);
+                
+                return { name, balance: paidInJPY - perPersonShare.value };
+            }));
+
             // --- Data Management ---
-            const exportData = () => { const data = { days: days.value, expenses: expenses.value, exchangeRate: exchangeRate.value }; const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `2026JP_Misty_Backup_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url); };
+            const exportData = () => { const data = { days: days.value, expenses: expenses.value, exchangeRate: exchangeRate.value }; const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `2026JP_Finance_Backup_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url); };
             const importData = (event) => { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { try { const parsed = JSON.parse(e.target.result); if(confirm('Overwrite current data?')) { days.value = parsed.days || days.value; expenses.value = parsed.expenses || expenses.value; exchangeRate.value = parsed.exchangeRate || exchangeRate.value; showDataModal.value = false; refreshMap(); alert('Success!'); } } catch (err) { alert('Invalid file!'); } }; reader.readAsText(file); };
-            const copyCodeToClipboard = () => { const jsonString = JSON.stringify(days.value, null, 4); const codeSnippet = `const days = ref(${jsonString});`; navigator.clipboard.writeText(codeSnippet).then(() => { copySuccess.value = true; setTimeout(() => copySuccess.value = false, 2000); alert('Code copied! Paste into index.html on GitHub.'); }); };
-            const resetData = () => { if(confirm('Reset all data to default?')) { localStorage.removeItem('2026JP_Misty_v1'); location.reload(); }};
+            const copyCodeToClipboard = () => { const jsonString = JSON.stringify(days.value, null, 4); const codeSnippet = `const days = ref(${jsonString});`; navigator.clipboard.writeText(codeSnippet).then(() => { copySuccess.value = true; setTimeout(() => copySuccess.value = false, 2000); alert('Code copied!'); }); };
+            const resetData = () => { if(confirm('Reset all data?')) { localStorage.removeItem('2026JP_Pro_Finance_v1'); location.reload(); }};
 
             // --- Drag & Drop ---
             const onDragStart = (index, event) => { draggedIndex.value = index; event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.dropEffect = 'move'; };
@@ -424,14 +518,8 @@
             const changeDay = (index) => { currentDayIndex.value = index; setTimeout(() => refreshMap(), 300); };
             watch(currentTab, (newTab) => { if (newTab === 'schedule') { setTimeout(() => { if(map) map.invalidateSize(); else initOrUpdateMap(); }, 100); }});
             
-            // Expense & Init
-            const addExpense = () => { if (!newExpense.value.item || !newExpense.value.amount) return; expenses.value.unshift({ ...newExpense.value }); newExpense.value = { payer: '羊羊', item: '', amount: '' }; showExpenseModal.value = false; };
-            const deleteExpense = (i) => expenses.value.splice(i, 1);
-            const totalSpent = computed(() => expenses.value.reduce((sum, i) => sum + (i.amount || 0), 0));
-            const perPersonShare = computed(() => peopleNames.length ? Math.round(totalSpent.value / peopleNames.length) : 0);
-            const people = computed(() => peopleNames.map(name => { const paid = expenses.value.filter(e => e.payer === name).reduce((sum, e) => sum + (e.amount || 0), 0); return { name, balance: paid - perPersonShare.value }; }));
-
-            const saveKey = '2026JP_Misty_v1';
+            // Save Key updated
+            const saveKey = '2026JP_Pro_Finance_v1';
             watch([days, expenses, exchangeRate], () => { localStorage.setItem(saveKey, JSON.stringify({ days: days.value, expenses: expenses.value, exchangeRate: exchangeRate.value })); }, { deep: true });
             
             onMounted(() => { 
@@ -449,12 +537,14 @@
             return { 
                 currentTab, showAddModal, showExpenseModal, showDataModal, currentDayIndex, days, tempEvent, isEditing, 
                 openAddModal, openEditModal, saveEvent, deleteEvent, 
-                peopleNames, expenses, newExpense, addExpense, deleteExpense, 
-                totalSpent, perPersonShare, people, exchangeRate, 
+                peopleNames, expenses, newExpense, deleteExpense, 
+                totalSpentJPY, perPersonShare, people, exchangeRate, 
                 weatherData, mapLoading, refreshMap, changeDay, getGoogleMapsLink, getTransportIcon, addToNote, 
                 exportData, importData, copyCodeToClipboard, copySuccess, resetData,
                 onDragStart, onDragEnter, onDrop, onDragEnd, draggedIndex,
                 handleImageUpload, viewImage, previewImage,
+                // New Exports for Finance
+                isEditingExpense, openAddExpense, openEditExpense, saveExpense,
                 addDay: () => days.value.push({date:'', events:[]}) 
             };
         }
