@@ -11,22 +11,40 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        :root { --bg-color: #e0ebf3; --winter: #71a1cb; --winter-dark: #5a8ab5; }
-        body { font-family: 'M PLUS Rounded 1c', sans-serif; background-color: var(--bg-color); color: #334155; background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 20px 20px; }
+        /* --- 配色設定：迷霧藍 (Misty Blue) --- */
+        :root { 
+            --bg-color: #e0ebf3;
+            --winter: #71a1cb;
+            --winter-dark: #5a8ab5; 
+        }
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: var(--bg-color);
+            color: #334155;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
         .pt-safe { padding-top: env(safe-area-inset-top); }
         .soft-shadow { box-shadow: 0 4px 15px rgba(94, 134, 169, 0.1); }
+        
         #schedule-map { width: 100%; height: 100%; z-index: 1; }
         .leaflet-popup-content-wrapper { border-radius: 8px; font-weight: bold; font-size: 12px; padding: 2px; }
-        .transit-line::before { content: ''; position: absolute; left: -20px; top: 24px; bottom: -24px; width: 2px; background-image: linear-gradient(to bottom, #94a3b8 50%, transparent 50%); background-size: 2px 10px; z-index: 0; }
-        .draggable-item { cursor: grab; } .draggable-item:active { cursor: grabbing; }
+        .transit-line::before {
+            content: ''; position: absolute; left: -20px; top: 24px; bottom: -24px; width: 2px;
+            background-image: linear-gradient(to bottom, #94a3b8 50%, transparent 50%); background-size: 2px 10px; z-index: 0;
+        }
+        .draggable-item { cursor: grab; }
+        .draggable-item:active { cursor: grabbing; }
         .dragging { opacity: 0.6; transform: scale(0.98); background-color: #f1f5f9; border: 2px dashed #71a1cb; }
         .drag-handle { cursor: grab; touch-action: none; }
     </style>
     <script>
-        tailwind.config = { theme: { extend: { colors: { winter: { DEFAULT: '#71a1cb', light: '#eef6fc', dark: '#5a8ab5' } } } } }
+        tailwind.config = {
+            theme: { extend: { colors: { winter: { DEFAULT: '#71a1cb', light: '#eef6fc', dark: '#5a8ab5' } } } }
+        }
     </script>
 </head>
 <body class="h-screen overflow-hidden flex flex-col text-slate-700">
@@ -37,20 +55,40 @@
         <div class="px-6 pt-4 pb-2 flex justify-between items-end">
             <div>
                 <div class="text-[10px] text-winter font-bold tracking-widest uppercase mb-1">Travel Log 2026</div>
-                <h1 class="text-xl font-bold text-gray-800 tracking-tight flex items-center">2026''冬の旅 <span class="text-base ml-2 text-winter">❄️</span></h1>
+                <h1 class="text-xl font-bold text-gray-800 tracking-tight flex items-center">
+                    2026''冬の旅 <span class="text-base ml-2 text-winter">❄️</span>
+                </h1>
             </div>
             <div class="flex items-center gap-3">
-                <button v-if="currentTab === 'schedule'" @click="refreshMap" class="text-[10px] bg-winter/10 text-winter px-2 py-1 rounded-full border border-winter/20 active:bg-winter active:text-white transition-colors flex items-center"><span class="mr-1">↻</span> Map</button>
-                <button @click="showDataModal = true" class="text-gray-400 hover:text-winter transition-colors p-1"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 1 1 0-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 0 1-1.44-4.282m3.102.069a18.03 18.03 0 0 1-.59-4.59c0-1.586.205-3.124.59-4.59m0 9.18a23.848 23.848 0 0 1 8.835 2.535M10.34 6.66a23.847 23.847 0 0 0 8.835-2.535m0 0A23.74 23.74 0 0 0 18.795 3m.38 1.125a23.91 23.91 0 0 1 1.014 5.795" /></svg></button>
+                <button v-if="currentTab === 'schedule'" @click="refreshMap" class="text-[10px] bg-winter/10 text-winter px-2 py-1 rounded-full border border-winter/20 active:bg-winter active:text-white transition-colors flex items-center">
+                    <span class="mr-1">↻</span> Map
+                </button>
+                <button @click="showDataModal = true" class="text-gray-400 hover:text-winter transition-colors p-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 1 1 0-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 0 1-1.44-4.282m3.102.069a18.03 18.03 0 0 1-.59-4.59c0-1.586.205-3.124.59-4.59m0 9.18a23.848 23.848 0 0 1 8.835 2.535M10.34 6.66a23.847 23.847 0 0 0 8.835-2.535m0 0A23.74 23.74 0 0 0 18.795 3m.38 1.125a23.91 23.91 0 0 1 1.014 5.795" /></svg>
+                </button>
             </div>
         </div>
+
         <div class="flex border-b border-slate-200 mt-2">
-            <button @click="currentTab = 'schedule'" class="flex-1 py-3 text-sm font-bold transition-colors relative" :class="currentTab === 'schedule' ? 'text-winter' : 'text-gray-400 hover:text-gray-600'">行程 & 交通<div v-if="currentTab === 'schedule'" class="absolute bottom-0 left-0 w-full h-0.5 bg-winter"></div></button>
-            <button @click="currentTab = 'money'" class="flex-1 py-3 text-sm font-bold transition-colors relative" :class="currentTab === 'money' ? 'text-winter' : 'text-gray-400 hover:text-gray-600'">分帳 & 匯率<div v-if="currentTab === 'money'" class="absolute bottom-0 left-0 w-full h-0.5 bg-winter"></div></button>
+            <button @click="currentTab = 'schedule'" class="flex-1 py-3 text-sm font-bold transition-colors relative" 
+                :class="currentTab === 'schedule' ? 'text-winter' : 'text-gray-400 hover:text-gray-600'">
+                行程 & 交通
+                <div v-if="currentTab === 'schedule'" class="absolute bottom-0 left-0 w-full h-0.5 bg-winter"></div>
+            </button>
+            <button @click="currentTab = 'money'" class="flex-1 py-3 text-sm font-bold transition-colors relative"
+                :class="currentTab === 'money' ? 'text-winter' : 'text-gray-400 hover:text-gray-600'">
+                分帳 & 匯率
+                <div v-if="currentTab === 'money'" class="absolute bottom-0 left-0 w-full h-0.5 bg-winter"></div>
+            </button>
         </div>
+        
         <div v-if="currentTab === 'schedule'" class="px-4 py-3 bg-white/50 border-b border-slate-200">
              <div class="flex space-x-3 overflow-x-auto no-scrollbar">
-                <button v-for="(day, index) in days" :key="index" @click="changeDay(index)" class="flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-300 border" :class="currentDayIndex === index ? 'bg-winter text-white border-winter shadow-md' : 'bg-white text-gray-500 border-gray-300'">Day {{ index }}</button>
+                <button v-for="(day, index) in days" :key="index" @click="changeDay(index)"
+                    class="flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-300 border"
+                    :class="currentDayIndex === index ? 'bg-winter text-white border-winter shadow-md' : 'bg-white text-gray-500 border-gray-300'">
+                    Day {{ index }}
+                </button>
                 <button @click="addDay" class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full border border-dashed border-gray-400 text-gray-500 text-sm hover:border-winter hover:text-winter bg-white">+</button>
             </div>
         </div>
@@ -60,9 +98,11 @@
         <div v-if="currentTab === 'schedule'" class="space-y-6">
             <div class="relative w-full h-56 rounded-3xl overflow-hidden soft-shadow border border-white bg-gray-100">
                 <div id="schedule-map"></div>
-                <div v-if="mapLoading" class="absolute inset-0 bg-white/60 backdrop-blur-sm z-[1000] flex items-center justify-center pointer-events-none"><div class="text-xs font-bold text-winter animate-pulse">Updating Pins...</div></div>
+                <div v-if="mapLoading" class="absolute inset-0 bg-white/60 backdrop-blur-sm z-[1000] flex items-center justify-center pointer-events-none">
+                    <div class="text-xs font-bold text-winter animate-pulse">Updating Pins...</div>
+                </div>
             </div>
-            
+
             <div class="flex items-center justify-between px-1">
                  <input type="date" v-model="days[currentDayIndex].date" class="bg-transparent text-sm font-bold text-gray-600 border-none p-0 focus:ring-0">
                  <div v-if="weatherData.current" class="text-xs font-medium text-winter bg-white border border-white px-2 py-1 rounded-md shadow-sm flex items-center gap-1">
@@ -73,25 +113,69 @@
             </div>
 
             <div class="relative space-y-6 pl-4 border-l border-slate-300 ml-2">
-                <div v-if="days[currentDayIndex].events.length === 0" class="pl-4 py-4 text-xs text-gray-400 font-light tracking-widest">NO EVENTS FOR TODAY</div>
-                <div v-for="(event, eIndex) in days[currentDayIndex].events" :key="event.id" draggable="true" @dragstart="onDragStart(eIndex, $event)" @dragover.prevent @dragenter="onDragEnter(eIndex)" @drop="onDrop(eIndex)" @dragend="onDragEnd" class="relative group pl-6 transition-all duration-200 draggable-item" :class="[event.type === 'transit' ? 'transit-line' : '', draggedIndex === eIndex ? 'dragging' : '']">
-                    <div class="absolute -left-[21px] top-1 z-10 transition-colors bg-white flex items-center justify-center" :class="event.type === 'transit' ? 'w-6 h-6 border-2 border-gray-400 rounded-full text-[10px]' : 'w-3 h-3 border-2 border-winter rounded-full mt-1'">
+                <div v-if="days[currentDayIndex].events.length === 0" class="pl-4 py-4 text-xs text-gray-400 font-light tracking-widest">
+                    NO EVENTS FOR TODAY
+                </div>
+
+                <div v-for="(event, eIndex) in days[currentDayIndex].events" 
+                     :key="event.id" 
+                     draggable="true"
+                     @dragstart="onDragStart(eIndex, $event)"
+                     @dragover.prevent
+                     @dragenter="onDragEnter(eIndex)"
+                     @drop="onDrop(eIndex)"
+                     @dragend="onDragEnd"
+                     class="relative group pl-6 transition-all duration-200 draggable-item"
+                     :class="[
+                        event.type === 'transit' ? 'transit-line' : '',
+                        draggedIndex === eIndex ? 'dragging' : ''
+                     ]">
+                    
+                    <div class="absolute -left-[21px] top-1 z-10 transition-colors bg-white flex items-center justify-center"
+                         :class="event.type === 'transit' ? 'w-6 h-6 border-2 border-gray-400 rounded-full text-[10px]' : 'w-3 h-3 border-2 border-winter rounded-full mt-1'">
                          <span v-if="event.type === 'transit'">{{ getTransportIcon(event.transportMode) }}</span>
                     </div>
-                    <div class="p-4 rounded-2xl soft-shadow transition-all active:scale-[0.99] border relative overflow-hidden" :class="event.type === 'transit' ? 'bg-white/60 border-slate-200' : 'bg-white border-white'">
-                        <div class="absolute top-2 right-2 text-gray-300 cursor-grab p-1 drag-handle hover:text-winter z-10"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg></div>
+                    
+                    <div class="p-4 rounded-2xl soft-shadow transition-all active:scale-[0.99] border relative overflow-hidden"
+                         :class="event.type === 'transit' ? 'bg-white/60 border-slate-200' : 'bg-white border-white'">
+                        
+                        <div class="absolute top-2 right-2 text-gray-300 cursor-grab p-1 drag-handle hover:text-winter z-10">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+                        </div>
+
                         <div class="flex justify-between items-start">
-                            <div v-if="event.image" class="mr-3 shrink-0"><img :src="event.image" class="w-20 h-20 rounded-xl object-cover border border-slate-200 shadow-sm hover:opacity-90 transition-opacity" @click="viewImage(event.image)"></div>
+                            <div v-if="event.image" class="mr-3 shrink-0">
+                                <img :src="event.image" class="w-20 h-20 rounded-xl object-cover border border-slate-200 shadow-sm hover:opacity-90 transition-opacity" @click="viewImage(event.image)">
+                            </div>
+
                             <div class="flex-1 pr-6">
-                                <div class="font-bold text-xs tracking-wider mb-2 flex items-center" :class="event.type === 'transit' ? 'text-gray-500' : 'text-winter'">{{ event.time }}<span v-if="event.type === 'transit'" class="ml-2 bg-slate-100 text-gray-600 px-1.5 py-0.5 rounded text-[10px] border border-slate-200">{{ event.transportMode }}</span></div>
+                                <div class="font-bold text-xs tracking-wider mb-2 flex items-center"
+                                     :class="event.type === 'transit' ? 'text-gray-500' : 'text-winter'">
+                                    {{ event.time }}
+                                    <span v-if="event.type === 'transit'" class="ml-2 bg-slate-100 text-gray-600 px-1.5 py-0.5 rounded text-[10px] border border-slate-200">
+                                        {{ event.transportMode }}
+                                    </span>
+                                </div>
+                                
                                 <div v-if="event.type === 'transit'">
-                                    <div class="flex flex-col space-y-1"><div class="flex items-center text-gray-700 font-bold"><span class="text-xs text-gray-400 w-8">From</span><span>{{ event.origin }}</span></div><div class="ml-1 border-l-2 border-dashed border-slate-300 h-3"></div><div class="flex items-center text-gray-700 font-bold"><span class="text-xs text-gray-400 w-8">To</span><span>{{ event.destination }}</span></div></div>
+                                    <div class="flex flex-col space-y-1">
+                                        <div class="flex items-center text-gray-700 font-bold"><span class="text-xs text-gray-400 w-8">From</span><span>{{ event.origin }}</span></div>
+                                        <div class="ml-1 border-l-2 border-dashed border-slate-300 h-3"></div>
+                                        <div class="flex items-center text-gray-700 font-bold"><span class="text-xs text-gray-400 w-8">To</span><span>{{ event.destination }}</span></div>
+                                    </div>
                                     <a :href="getGoogleMapsLink(event.origin, event.destination)" target="_blank" class="mt-3 inline-flex items-center text-[10px] bg-white border border-gray-300 px-3 py-1.5 rounded-full text-gray-500 hover:text-winter hover:border-winter transition-colors">🔍 Check Route</a>
                                     <p v-if="event.note" class="text-gray-500 text-xs mt-2 bg-white/50 p-2 rounded border border-gray-200 whitespace-pre-wrap">{{ event.note }}</p>
                                 </div>
-                                <div v-else><h3 class="font-bold text-lg mb-1 text-gray-800">{{ event.location }}</h3><p v-if="event.note" class="text-gray-500 text-xs whitespace-pre-wrap bg-slate-50/80 p-2 rounded leading-relaxed mt-1 border border-slate-100">{{ event.note }}</p></div>
+                                <div v-else>
+                                    <h3 class="font-bold text-lg mb-1 text-gray-800">{{ event.location }}</h3>
+                                    <p v-if="event.note" class="text-gray-500 text-xs whitespace-pre-wrap bg-slate-50/80 p-2 rounded leading-relaxed mt-1 border border-slate-100">{{ event.note }}</p>
+                                </div>
                             </div>
-                            <div class="flex flex-col space-y-2 mt-6"><button @click="openEditModal(eIndex)" class="text-gray-300 hover:text-winter p-1">✎</button><button @click="deleteEvent(eIndex)" class="text-gray-300 hover:text-red-400 p-1">×</button></div>
+                            
+                            <div class="flex flex-col space-y-2 mt-6">
+                                <button @click="openEditModal(eIndex)" class="text-gray-300 hover:text-winter p-1">✎</button>
+                                <button @click="deleteEvent(eIndex)" class="text-gray-300 hover:text-red-400 p-1">×</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -128,27 +212,47 @@
                 </div>
                 <div class="space-y-3">
                     <div v-for="(record, index) in expenses" :key="index" class="flex justify-between items-center p-3 bg-white rounded-xl border border-white soft-shadow relative overflow-hidden">
+                        
                         <div v-if="record.type === 'transfer'" class="flex w-full items-center justify-between">
                             <div class="absolute left-0 top-0 bottom-0 w-1 bg-emerald-400"></div>
                             <div>
                                 <div class="text-[10px] text-emerald-500 font-bold uppercase tracking-wider mb-0.5">Repayment</div>
-                                <div class="text-sm font-bold text-gray-700 flex items-center">{{ record.payer }} <span class="text-gray-300 mx-1">➔</span> {{ record.payee }}</div>
+                                <div class="text-sm font-bold text-gray-700 flex items-center">
+                                    {{ record.payer }} <span class="text-gray-300 mx-1">➔</span> {{ record.payee }}
+                                </div>
                             </div>
                             <div class="text-right">
-                                <div class="font-bold text-emerald-600 text-sm">{{ record.currency === 'TWD' ? 'NT$' : '¥' }} {{ record.amount.toLocaleString() }}</div>
-                                <div class="flex gap-2 justify-end mt-1"><button @click="openEditExpense(index)" class="text-[10px] text-gray-400 hover:text-winter">✎</button><button @click="deleteExpense(index)" class="text-[10px] text-gray-300 hover:text-red-400">×</button></div>
+                                <div class="font-bold text-emerald-600 text-sm">
+                                    {{ record.currency === 'TWD' ? 'NT$' : '¥' }} {{ record.amount.toLocaleString() }}
+                                </div>
+                                <div class="flex gap-2 justify-end mt-1">
+                                    <button @click="openEditExpense(index)" class="text-[10px] text-gray-400 hover:text-winter">✎</button>
+                                    <button @click="deleteExpense(index)" class="text-[10px] text-gray-300 hover:text-red-400">×</button>
+                                </div>
                             </div>
                         </div>
+
                         <div v-else class="flex w-full items-center justify-between">
                             <div>
                                 <div class="text-gray-800 font-bold text-sm">{{ record.item }}</div>
-                                <div class="text-[10px] text-gray-400 flex items-center gap-1"><span>{{ record.payer }}</span> • <span :class="record.currency === 'TWD' ? 'text-emerald-500 font-bold' : ''">{{ record.currency === 'TWD' ? 'NT$' : '¥' }} {{ record.amount.toLocaleString() }}</span></div>
+                                <div class="text-[10px] text-gray-400 flex items-center gap-1">
+                                    <span>{{ record.payer }}</span> • 
+                                    <span :class="record.currency === 'TWD' ? 'text-emerald-500 font-bold' : ''">
+                                        {{ record.currency === 'TWD' ? 'NT$' : '¥' }} {{ record.amount.toLocaleString() }}
+                                    </span>
+                                </div>
                             </div>
                             <div class="text-right flex flex-col items-end">
-                                <div class="font-bold text-winter text-xs">{{ record.currency === 'TWD' ? `(¥${Math.round(record.amount / exchangeRate)})` : `(NT$${Math.round(record.amount * exchangeRate)})` }}</div>
-                                <div class="flex gap-2 mt-1"><button @click="openEditExpense(index)" class="text-[10px] text-gray-400 hover:text-winter">✎</button><button @click="deleteExpense(index)" class="text-[10px] text-gray-300 hover:text-red-400">×</button></div>
+                                <div class="font-bold text-winter text-xs">
+                                    {{ record.currency === 'TWD' ? `(¥${Math.round(record.amount / exchangeRate)})` : `(NT$${Math.round(record.amount * exchangeRate)})` }}
+                                </div>
+                                <div class="flex gap-2 mt-1">
+                                    <button @click="openEditExpense(index)" class="text-[10px] text-gray-400 hover:text-winter">✎</button>
+                                    <button @click="deleteExpense(index)" class="text-[10px] text-gray-300 hover:text-red-400">×</button>
+                                </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -160,7 +264,7 @@
             <h3 class="text-lg font-bold mb-4 text-gray-800 flex items-center justify-between"><span>⚙️ 資料管理</span><button @click="showDataModal = false" class="text-gray-400 hover:text-gray-600">×</button></h3>
             <div class="space-y-4">
                 <div class="bg-gray-50 p-4 rounded-xl">
-                    <div class="text-xs font-bold text-gray-400 uppercase mb-2">備份 / 還原</div>
+                    <div class="text-xs font-bold text-gray-400 uppercase mb-2">備份 / 還原 (本機)</div>
                     <div class="flex gap-2">
                         <button @click="exportData" class="flex-1 bg-winter text-white py-2 rounded-lg text-sm font-bold shadow-sm">匯出檔案</button>
                         <label class="flex-1 bg-white border border-gray-200 text-gray-600 py-2 rounded-lg text-sm font-bold shadow-sm text-center cursor-pointer">匯入<input type="file" @change="importData" class="hidden" accept=".json"></label>
@@ -176,7 +280,9 @@
         </div>
     </div>
 
-    <div v-if="previewImage" class="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4" @click="previewImage = null"><img :src="previewImage" class="max-w-full max-h-full rounded-lg shadow-2xl"></div>
+    <div v-if="previewImage" class="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4" @click="previewImage = null">
+        <img :src="previewImage" class="max-w-full max-h-full rounded-lg shadow-2xl">
+    </div>
 
     <div v-if="showAddModal" class="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-end justify-center sm:items-center">
         <div class="bg-white w-full max-w-sm p-6 rounded-t-3xl sm:rounded-3xl shadow-2xl mb-safe sm:mb-0 transition-all max-h-[90vh] overflow-y-auto">
@@ -185,40 +291,82 @@
                 <button @click="tempEvent.type = 'spot'" :class="tempEvent.type === 'spot' ? 'bg-white text-winter shadow-sm' : 'text-gray-400'" class="flex-1 py-2 rounded-lg text-sm font-bold transition-all">📍 景點</button>
                 <button @click="tempEvent.type = 'transit'" :class="tempEvent.type === 'transit' ? 'bg-white text-gray-600 shadow-sm' : 'text-gray-400'" class="flex-1 py-2 rounded-lg text-sm font-bold transition-all">🚆 交通</button>
             </div>
+
             <div class="space-y-4">
                 <input v-model="tempEvent.time" type="time" class="w-full bg-gray-50 p-3 rounded-xl border-none font-bold text-gray-600 focus:ring-1 focus:ring-winter">
+                
                 <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
                     <label class="block text-xs font-bold text-gray-400 mb-2">Photo (Max 600px)</label>
-                    <div v-if="tempEvent.image" class="relative mb-2"><img :src="tempEvent.image" class="w-full h-32 object-cover rounded-lg"><button @click="tempEvent.image = null" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow">×</button></div>
+                    <div v-if="tempEvent.image" class="relative mb-2">
+                        <img :src="tempEvent.image" class="w-full h-32 object-cover rounded-lg">
+                        <button @click="tempEvent.image = null" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow">×</button>
+                    </div>
                     <input type="file" accept="image/*" @change="handleImageUpload" class="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-winter file:text-white hover:file:bg-winter-dark">
                 </div>
-                <div v-if="tempEvent.type === 'spot'" class="space-y-4"><input v-model="tempEvent.location" type="text" placeholder="Location Name" class="w-full bg-gray-50 p-3 rounded-xl border-none focus:ring-1 focus:ring-winter"><textarea v-model="tempEvent.note" placeholder="Note" class="w-full bg-gray-50 p-3 rounded-xl border-none h-20 resize-none focus:ring-1 focus:ring-winter"></textarea></div>
+
+                <div v-if="tempEvent.type === 'spot'" class="space-y-4">
+                    <input v-model="tempEvent.location" type="text" placeholder="Location Name" class="w-full bg-gray-50 p-3 rounded-xl border-none focus:ring-1 focus:ring-winter">
+                    <textarea v-model="tempEvent.note" placeholder="Note" class="w-full bg-gray-50 p-3 rounded-xl border-none h-20 resize-none focus:ring-1 focus:ring-winter"></textarea>
+                </div>
+
                 <div v-if="tempEvent.type === 'transit'" class="space-y-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <div class="flex flex-col space-y-3"><div class="relative"><span class="absolute left-3 top-3 text-xs text-gray-400 font-bold">A</span><input v-model="tempEvent.origin" type="text" placeholder="From" class="w-full pl-8 bg-white p-3 rounded-xl border border-gray-200 focus:border-winter outline-none text-sm"></div><div class="relative"><span class="absolute left-3 top-3 text-xs text-gray-400 font-bold">B</span><input v-model="tempEvent.destination" type="text" placeholder="To" class="w-full pl-8 bg-white p-3 rounded-xl border border-gray-200 focus:border-winter outline-none text-sm"></div></div>
-                    <div v-if="tempEvent.origin && tempEvent.destination"><a :href="getGoogleMapsLink(tempEvent.origin, tempEvent.destination)" target="_blank" class="block w-full text-center bg-blue-50 text-blue-600 py-2 rounded-xl text-xs font-bold border border-blue-100 hover:bg-blue-100 mb-2">🔎 Find on Google Maps</a></div>
-                    <div><textarea v-model="tempEvent.note" placeholder="詳細資訊" class="w-full bg-white p-3 rounded-xl border border-gray-200 h-20 resize-none focus:border-winter text-xs mb-2"></textarea><div class="text-[10px] text-gray-400 font-bold mb-1">快速輸入:</div><div class="flex flex-wrap gap-2"><button @click="addToNote('JR山手線 ')" class="bg-green-100 text-green-700 px-2 py-1 rounded-lg text-[10px] font-bold">JR山手線</button><button @click="addToNote('銀座線 ')" class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-lg text-[10px] font-bold">銀座線</button><button @click="addToNote('地下鐵 ')" class="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg text-[10px] font-bold">地下鐵</button><button @click="addToNote('新幹線 ')" class="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg text-[10px] font-bold">新幹線</button><button @click="addToNote('¥180 ')" class="bg-gray-200 text-gray-600 px-2 py-1 rounded-lg text-[10px] font-bold">¥180</button><button @click="addToNote('¥210 ')" class="bg-gray-200 text-gray-600 px-2 py-1 rounded-lg text-[10px] font-bold">¥210</button></div></div>
-                    <div><label class="text-xs text-gray-400 font-bold ml-1 mb-1 block">Mode (含 Car):</label><div class="grid grid-cols-4 gap-2"><button v-for="mode in ['Train', 'Subway', 'Bus', 'Taxi', 'Car', 'Walk']" :key="mode" @click="tempEvent.transportMode = mode" :class="tempEvent.transportMode === mode ? 'bg-gray-700 text-white' : 'bg-white text-gray-500 border border-gray-200'" class="py-2 rounded-lg text-xs font-bold transition-colors">{{ getTransportIcon(mode) }} {{ mode }}</button></div></div>
+                    <div class="flex flex-col space-y-3">
+                        <div class="relative"><span class="absolute left-3 top-3 text-xs text-gray-400 font-bold">A</span><input v-model="tempEvent.origin" type="text" placeholder="From" class="w-full pl-8 bg-white p-3 rounded-xl border border-gray-200 focus:border-winter outline-none text-sm"></div>
+                        <div class="relative"><span class="absolute left-3 top-3 text-xs text-gray-400 font-bold">B</span><input v-model="tempEvent.destination" type="text" placeholder="To" class="w-full pl-8 bg-white p-3 rounded-xl border border-gray-200 focus:border-winter outline-none text-sm"></div>
+                    </div>
+                    <div v-if="tempEvent.origin && tempEvent.destination">
+                         <a :href="getGoogleMapsLink(tempEvent.origin, tempEvent.destination)" target="_blank" class="block w-full text-center bg-blue-50 text-blue-600 py-2 rounded-xl text-xs font-bold border border-blue-100 hover:bg-blue-100 mb-2">🔎 Find on Google Maps</a>
+                    </div>
+                    <div>
+                        <textarea v-model="tempEvent.note" placeholder="詳細資訊" class="w-full bg-white p-3 rounded-xl border border-gray-200 h-20 resize-none focus:border-winter text-xs mb-2"></textarea>
+                        <div class="text-[10px] text-gray-400 font-bold mb-1">快速輸入:</div>
+                        <div class="flex flex-wrap gap-2">
+                            <button @click="addToNote('JR山手線 ')" class="bg-green-100 text-green-700 px-2 py-1 rounded-lg text-[10px] font-bold">JR山手線</button>
+                            <button @click="addToNote('銀座線 ')" class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-lg text-[10px] font-bold">銀座線</button>
+                            <button @click="addToNote('地下鐵 ')" class="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg text-[10px] font-bold">地下鐵</button>
+                             <button @click="addToNote('新幹線 ')" class="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg text-[10px] font-bold">新幹線</button>
+                            <button @click="addToNote('¥180 ')" class="bg-gray-200 text-gray-600 px-2 py-1 rounded-lg text-[10px] font-bold">¥180</button>
+                            <button @click="addToNote('¥210 ')" class="bg-gray-200 text-gray-600 px-2 py-1 rounded-lg text-[10px] font-bold">¥210</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 font-bold ml-1 mb-1 block">Mode (含 Car):</label>
+                        <div class="grid grid-cols-4 gap-2">
+                            <button v-for="mode in ['Train', 'Subway', 'Bus', 'Taxi', 'Car', 'Walk']" :key="mode" @click="tempEvent.transportMode = mode" :class="tempEvent.transportMode === mode ? 'bg-gray-700 text-white' : 'bg-white text-gray-500 border border-gray-200'" class="py-2 rounded-lg text-xs font-bold transition-colors">{{ getTransportIcon(mode) }} {{ mode }}</button>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="flex gap-3 mt-6"><button @click="showAddModal = false" class="flex-1 py-3 text-gray-400 bg-gray-100 rounded-xl font-bold">Cancel</button><button @click="saveEvent" class="flex-1 py-3 text-white rounded-xl font-bold shadow-md" :class="tempEvent.type === 'spot' ? 'bg-winter' : 'bg-slate-500'">Save</button></div>
+            <div class="flex gap-3 mt-6">
+                <button @click="showAddModal = false" class="flex-1 py-3 text-gray-400 bg-gray-100 rounded-xl font-bold">Cancel</button>
+                <button @click="saveEvent" class="flex-1 py-3 text-white rounded-xl font-bold shadow-md" :class="tempEvent.type === 'spot' ? 'bg-winter' : 'bg-slate-500'">Save</button>
+            </div>
         </div>
     </div>
 
     <div v-if="showExpenseModal" class="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-end justify-center sm:items-center">
         <div class="bg-white w-full max-w-sm p-6 rounded-t-3xl sm:rounded-3xl shadow-2xl mb-safe sm:mb-0 transition-all">
-            <h3 class="text-lg font-bold mb-4 text-gray-800 flex justify-between items-center"><span>{{ isEditingExpense ? 'Edit Expense' : 'Add Expense' }}</span><span class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-400 font-normal">For All</span></h3>
-            <div class="flex gap-2 mb-3"><button v-for="p in peopleNames" :key="p" @click="newExpense.payer = p" :class="newExpense.payer === p ? 'bg-winter text-white' : 'bg-gray-100 text-gray-400'" class="flex-1 py-2 rounded-lg text-xs font-bold transition-colors">{{ p }} 先付</button></div>
-            <div class="flex bg-gray-100 p-1 rounded-xl mb-4"><button @click="newExpense.type = 'expense'" :class="newExpense.type !== 'transfer' ? 'bg-white text-winter shadow-sm' : 'text-gray-400'" class="flex-1 py-2 rounded-lg text-sm font-bold transition-all">一般支出</button><button @click="newExpense.type = 'transfer'" :class="newExpense.type === 'transfer' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-400'" class="flex-1 py-2 rounded-lg text-sm font-bold transition-all">還款/給錢</button></div>
-            <div class="flex bg-gray-50 p-1 rounded-xl mb-3 border border-gray-200"><button @click="newExpense.currency = 'JPY'" :class="newExpense.currency === 'JPY' ? 'bg-white text-winter shadow-sm border border-gray-100' : 'text-gray-400'" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all">¥ 日幣</button><button @click="newExpense.currency = 'TWD'" :class="newExpense.currency === 'TWD' ? 'bg-white text-emerald-600 shadow-sm border border-gray-100' : 'text-gray-400'" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all">NT$ 台幣</button></div>
-            <div v-if="newExpense.type !== 'transfer'">
-                <label class="block text-xs font-bold text-gray-400 mb-2">誰付的錢？</label><div class="flex gap-2 mb-4"><button v-for="p in peopleNames" :key="p" @click="newExpense.payer = p" :class="newExpense.payer === p ? 'bg-winter text-white' : 'bg-gray-100 text-gray-400'" class="flex-1 py-2 rounded-lg text-xs font-bold transition-colors">{{ p }}</button></div>
-                <input v-model="newExpense.item" type="text" placeholder="項目 (例如: 晚餐)" class="w-full mb-3 bg-gray-50 p-3 rounded-xl border-none">
+            <h3 class="text-lg font-bold mb-4 text-gray-800 flex justify-between items-center">
+                <span>{{ isEditingExpense ? 'Edit Expense' : 'Add Expense' }}</span>
+                <span class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-400 font-normal">For All</span>
+            </h3>
+            
+            <div class="flex gap-2 mb-3">
+                <button v-for="p in peopleNames" :key="p" @click="newExpense.payer = p" :class="newExpense.payer === p ? 'bg-winter text-white' : 'bg-gray-100 text-gray-400'" class="flex-1 py-2 rounded-lg text-xs font-bold transition-colors">{{ p }} 先付</button>
             </div>
-            <div v-else>
-                <div class="flex items-center gap-2 mb-4"><div class="flex-1"><label class="block text-xs font-bold text-gray-400 mb-1">誰給錢 (Payer)</label><select v-model="newExpense.payer" class="w-full bg-gray-50 p-2 rounded-xl border-none font-bold text-sm"><option v-for="p in peopleNames" :value="p">{{ p }}</option></select></div><div class="text-gray-300 pt-4">➔</div><div class="flex-1"><label class="block text-xs font-bold text-gray-400 mb-1">給誰 (Receiver)</label><select v-model="newExpense.payee" class="w-full bg-gray-50 p-2 rounded-xl border-none font-bold text-sm"><option v-for="p in peopleNames" :value="p">{{ p }}</option></select></div></div>
+
+            <div class="flex bg-gray-100 p-1 rounded-xl mb-3">
+                <button @click="newExpense.currency = 'JPY'" :class="newExpense.currency === 'JPY' ? 'bg-white text-winter shadow-sm' : 'text-gray-400'" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all">¥ 日幣</button>
+                <button @click="newExpense.currency = 'TWD'" :class="newExpense.currency === 'TWD' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-400'" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all">NT$ 台幣</button>
             </div>
+
+            <input v-model="newExpense.item" type="text" placeholder="項目 (例如: 晚餐)" class="w-full mb-3 bg-gray-50 p-3 rounded-xl border-none">
             <input v-model.number="newExpense.amount" type="number" :placeholder="newExpense.currency === 'JPY' ? '¥ Amount' : 'NT$ Amount'" class="w-full mb-4 bg-gray-50 p-3 rounded-xl border-none" inputmode="numeric">
-            <div class="flex gap-3"><button @click="showExpenseModal = false" class="flex-1 py-3 text-gray-400 bg-gray-100 rounded-xl font-bold">Cancel</button><button @click="saveExpense" class="flex-1 py-3 text-white bg-winter rounded-xl font-bold shadow-md">{{ isEditingExpense ? 'Update' : 'Save' }}</button></div>
+            
+            <div class="flex gap-3">
+                <button @click="showExpenseModal = false" class="flex-1 py-3 text-gray-400 bg-gray-100 rounded-xl font-bold">Cancel</button>
+                <button @click="saveExpense" class="flex-1 py-3 text-white bg-winter rounded-xl font-bold shadow-md">{{ isEditingExpense ? 'Update' : 'Save' }}</button>
+            </div>
         </div>
     </div>
 </div>
@@ -234,7 +382,8 @@
             const copySuccess = ref(false);
             const previewImage = ref(null);
             const currentDayIndex = ref(0);
-            const exchangeRate = ref(0.215);
+            
+            // Edit States
             const mapLoading = ref(false);
             const isEditing = ref(false);
             const editingIndex = ref(null);
@@ -242,29 +391,94 @@
             const editingExpenseIndex = ref(null); 
             const draggedIndex = ref(null);
 
-            // --- 核心資料 ---
-            const days = ref([
-                { date: '2026-02-20', events: [{ id: 1, type: 'spot', time: '15:30', location: '三重捷運站', note: '集合' }, { id: 2, type: 'spot', time: '17:00', location: '桃園機場第一航廈', note: '準備出發！' }] },
-                { date: '2026-02-21', events: [{ id: 3, type: 'spot', time: '06:00', location: '羽田機場第三航廈', note: '抵達東京' }, { id: 4, type: 'spot', time: '07:00', location: '東京大飯店', note: '寄放行李' }, { id: 5, type: 'spot', time: '08:00', location: '東京鐵塔', note: '拍照點: https://goo.gl/maps/...' }, { id: 6, type: 'spot', time: '09:30', location: 'Misojyu', note: '早餐\n橘子街\n淺草文化觀光中心(5F景觀台)' }, { id: 7, type: 'spot', time: '10:30', location: '淺草寺', note: '雷門、仲見世商店街、五重塔、淺草寺本堂 (求籤!)' }, { id: 8, type: 'spot', time: '11:40', location: 'にょろ助', note: '午餐 (鰻魚飯)' }, { id: 9, type: 'spot', time: '13:00', location: 'Torinoiru Cafe', note: '貓頭鷹咖啡廳 (Yanaka Honten)\n*搭公車前往' }, { id: 10, type: 'spot', time: '14:30', location: '秋葉原電器街', note: '逛街清單:\nAnimate\nAKIHABARA Gamers\n駿河屋\nMandarake Complex\nSuper Potato\nGIGO\nRadio會館\n有都八喜6F(麵包超人冰箱貼)\n秋葉原扭蛋會館' }, { id: 11, type: 'spot', time: '17:00', location: '東京地下街', note: '逛街' }, { id: 12, type: 'spot', time: '19:30', location: '阿利夫拉麵 (AFURI)', note: '晚餐' }, { id: 13, type: 'spot', time: '21:00', location: '東京大飯店', note: '回飯店休息' }] }
-            ]);
-            const expenses = ref([]);
-            
             const tempEvent = ref({ type: 'spot', time: '', location: '', origin: '', destination: '', transportMode: 'Train', note: '', image: null });
             const peopleNames = ['羊羊', '董董']; 
-            const newExpense = ref({ type: 'expense', payer: '羊羊', payee: '董董', item: '', amount: '', currency: 'JPY' });
+            const newExpense = ref({ payer: '羊羊', item: '', amount: '', currency: 'JPY' });
             const weatherData = ref({});
             let map = null, markers = [];
 
-            // --- 補回的天氣圖示邏輯 ---
+            // -------------------------------------------------------------
+            // ⭐ 核心資料 (已整合你提供的數據)
+            // -------------------------------------------------------------
+            const days = ref([
+                {
+                    "date": "2026-02-20",
+                    "events": [
+                        { "id": 1, "type": "spot", "time": "15:30", "location": "三重捷運站", "note": "集合", "transportMode": "Train" },
+                        { "id": 2, "type": "spot", "time": "17:00", "location": "桃園機場第一航廈", "note": "樂桃櫃檯自助報到(QR碼)\n↓\n等候登機", "transportMode": "Train" }
+                    ]
+                },
+                {
+                    "date": "2026-02-21",
+                    "events": [
+                        { "id": 3, "type": "spot", "time": "06:00", "location": "羽田機場第三航廈", "note": "抵達東京" },
+                        { "id": 4, "type": "spot", "time": "07:00", "location": "東京大飯店", "note": "寄放行李" },
+                        { "id": 5, "type": "spot", "time": "08:00", "location": "東京鐵塔", "note": "拍照點:\n❶芝公園\n❷赤羽橋站\n❸google map存的地點", "transportMode": "Train" },
+                        { "id": 6, "type": "spot", "time": "09:30", "location": "Misojyu", "note": "早餐吃完後\n↓\n橘子街", "transportMode": "Train" },
+                        { "id": 7, "type": "spot", "time": "10:30", "location": "淺草寺", "note": "• 淺草文化觀光中心(5F景觀台)\n• 雷門\n• 仲見世商店街\n• 五重塔\n• 淺草寺本堂 (求籤!)", "transportMode": "Train" },
+                        { "id": 8, "type": "spot", "time": "11:40", "location": "にょろ助", "note": "午餐 (鰻魚飯)" },
+                        { "id": 9, "type": "spot", "time": "13:00", "location": "Torinoiru Cafe", "note": "貓頭鷹咖啡廳 (Yanaka Honten)", "transportMode": "Train" },
+                        { "id": 10, "type": "spot", "time": "14:30", "location": "秋葉原", "note": "• 電器街口\n• Animate\n• AKIHABARA Gamers\n• 駿河屋\n• Mandarake Complex\n• Super Potato\n• GIGO\n• Radio會館\n• 有都八喜6F(麵包超人冰箱貼)\n• 秋葉原扭蛋會館", "transportMode": "Train" },
+                        { "id": 11, "type": "spot", "time": "17:00", "location": "東京地下街", "note": "卡比、寶可夢、吉伊卡哇、JUMP、海賊王", "transportMode": "Train" },
+                        { "id": 12, "type": "spot", "time": "19:30", "location": "阿利夫拉麵 (AFURI)", "note": "晚餐" },
+                        { "id": 13, "type": "spot", "time": "21:00", "location": "東京大飯店", "note": "回飯店休息" }
+                    ]
+                },
+                {
+                    "date": "2026-02-22",
+                    "events": [
+                        { "id": 1765282922645, "type": "spot", "time": "06:20", "location": "東京大飯店", "note": "出發！", "transportMode": "Train" },
+                        { "id": 1765282966828, "type": "transit", "time": "06:20", "location": "東京大飯店 ➝ 新宿站南口", "origin": "東京大飯店", "destination": "新宿站南口", "transportMode": "Subway", "note": "都営三田線 - 目黑\n↓\nJR山手線 - 新宿\n¥398" },
+                        { "id": 1765283394518, "type": "transit", "time": "07:00", "location": "新宿 ➝ 富士山站", "origin": "新宿", "destination": "富士山站", "transportMode": "Bus", "note": "Highway Bus" },
+                        { "id": 1765283557085, "type": "spot", "time": "09:30", "location": "日川時計店", "note": "拍照", "transportMode": "Train" },
+                        { "id": 1765283591675, "type": "spot", "time": "10:30", "location": "新倉山淺間公園", "note": "", "transportMode": "Train" },
+                        { "id": 1765283646750, "type": "spot", "time": "12:30", "location": "河口湖Lawson", "note": "", "transportMode": "Train" },
+                        { "id": 1765283701253, "type": "spot", "time": "12:50", "location": "Fujisan Shokupan", "note": "買富士山形狀麵包！", "transportMode": "Train" },
+                        { "id": 1765283848132, "type": "transit", "time": "14:00", "location": "河口湖站 ➝ 木之花美術館", "origin": "河口湖站", "destination": "木之花美術館", "transportMode": "Taxi", "note": "Uber" },
+                        { "id": 1765283923205, "type": "transit", "time": "17:00", "location": "木之花美術館 ➝ 河口湖站", "origin": "木之花美術館", "destination": "河口湖站", "transportMode": "Taxi", "note": "Uber" },
+                        { "id": 1765283959918, "type": "transit", "time": "17:20", "location": "河口湖站 ➝ 新宿車站", "origin": "河口湖站", "destination": "新宿車站", "transportMode": "Bus", "note": "Highway Bus" },
+                        { "id": 1765284103133, "type": "transit", "time": "19:30", "location": "新宿站 ➝ 東京大飯店", "origin": "新宿站", "destination": "東京大飯店", "transportMode": "Subway", "note": "山手線 - 目黑\n↓\n都営三田線 - 芝公園\n¥398" },
+                        { "id": 1765284155109, "type": "spot", "time": "21:00", "location": "東京大飯店", "note": "回飯店休息", "transportMode": "Train" }
+                    ]
+                },
+                {
+                    "date": "2026-02-23",
+                    "events": [
+                        { "id": 1765440481292, "type": "spot", "time": "09:00", "location": "東京大飯店", "note": "出發!", "transportMode": "Train" },
+                        { "id": 1765440504331, "type": "spot", "time": "09:30", "location": "東京巨蛋", "note": "逛逛打卡", "transportMode": "Train" },
+                        { "id": 1765440525283, "type": "spot", "time": "10:00", "location": "新宿", "note": "", "transportMode": "Train" },
+                        { "id": 1765440553514, "type": "spot", "time": "13:00", "location": "表參道原宿", "note": "", "transportMode": "Train" },
+                        { "id": 1765440566954, "type": "spot", "time": "17:30", "location": "澀谷", "note": "", "transportMode": "Train" },
+                        { "id": 1765440597162, "type": "spot", "time": "20:30", "location": "東京大飯店", "note": "回飯店休息\n明天要早起!", "transportMode": "Train" }
+                    ]
+                },
+                {
+                    "date": "2026-02-24",
+                    "events": []
+                }
+            ]);
+
+            const expenses = ref([
+                { "type": "transfer", "payer": "董董", "payee": "羊羊", "item": "", "amount": 20000, "currency": "TWD" },
+                { "type": "expense", "payer": "羊羊", "payee": "董董", "item": "東京大飯店(3天2夜)", "amount": 9475, "currency": "TWD" },
+                { "type": "expense", "payer": "羊羊", "payee": "董董", "item": "AIRDO回程機票", "amount": 3755, "currency": "TWD" },
+                { "type": "expense", "payer": "羊羊", "payee": "董董", "item": "JAL去程機票", "amount": 4712, "currency": "TWD" },
+                { "type": "expense", "payer": "羊羊", "payee": "董董", "item": "樂桃回程機票", "amount": 13908, "currency": "TWD" },
+                { "type": "expense", "payer": "羊羊", "payee": "董董", "item": "樂桃去程機票", "amount": 12620, "currency": "TWD" }
+            ]);
+            const exchangeRate = ref(0.215);
+            // -------------------------------------------------------------
+
+            // --- Weather Icon Logic ---
             const weatherIcon = computed(() => {
                 if (!weatherData.value.current) return '⏳';
                 const code = weatherData.value.current.weather_code;
-                if (code === 0) return '☀️'; // 晴天
-                if (code <= 3) return '⛅'; // 多雲
-                if (code <= 48) return '🌫️'; // 霧
-                if (code <= 67) return '🌧️'; // 雨
-                if (code <= 77) return '❄️'; // 雪
-                return '🌥️'; // 陰天/其他
+                if (code === 0) return '☀️'; 
+                if (code <= 3) return '⛅'; 
+                if (code <= 48) return '🌫️'; 
+                if (code <= 67) return '🌧️'; 
+                if (code <= 77) return '❄️'; 
+                return '🌥️'; 
             });
 
             // ... (Rest of logic) ...
@@ -286,10 +500,10 @@
             const perPersonShare = computed(() => peopleNames.length ? Math.round(totalSpentJPY.value / peopleNames.length) : 0);
             const people = computed(() => peopleNames.map(name => { let paidInJPY = 0; expenses.value.forEach(e => { let amountJPY = e.currency === 'TWD' ? (e.amount / exchangeRate.value) : e.amount; if (e.type === 'expense') { if (e.payer === name) paidInJPY += amountJPY; } else if (e.type === 'transfer') { if (e.payer === name) paidInJPY += amountJPY; if (e.payee === name) paidInJPY -= amountJPY; } }); return { name, balance: paidInJPY - perPersonShare.value }; }));
 
-            const exportData = () => { const data = { days: days.value, expenses: expenses.value, exchangeRate: exchangeRate.value }; const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `2026JP_Fixed_Backup_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url); };
+            const exportData = () => { const data = { days: days.value, expenses: expenses.value, exchangeRate: exchangeRate.value }; const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `2026JP_Full_Backup_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url); };
             const importData = (event) => { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { try { const parsed = JSON.parse(e.target.result); if(confirm('Overwrite?')) { days.value = parsed.days || days.value; expenses.value = parsed.expenses || expenses.value; exchangeRate.value = parsed.exchangeRate || exchangeRate.value; showDataModal.value = false; refreshMap(); alert('Success!'); } } catch (err) { alert('Invalid file!'); } }; reader.readAsText(file); };
             const copyCodeToClipboard = () => { const daysJson = JSON.stringify(days.value, null, 4); const expensesJson = JSON.stringify(expenses.value, null, 4); const rateJson = exchangeRate.value; const codeSnippet = `const days = ref(${daysJson});\nconst expenses = ref(${expensesJson});\nconst exchangeRate = ref(${rateJson});`; navigator.clipboard.writeText(codeSnippet).then(() => { copySuccess.value = true; setTimeout(() => copySuccess.value = false, 2000); alert('Code copied!'); }); };
-            const resetData = () => { if(confirm('Reset?')) { localStorage.removeItem('2026JP_Fixed_v1'); location.reload(); }};
+            const resetData = () => { if(confirm('Reset?')) { localStorage.removeItem('2026JP_YangDong_Full_v1'); location.reload(); }};
 
             const onDragStart = (index, event) => { draggedIndex.value = index; event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.dropEffect = 'move'; };
             const onDragEnter = (index) => { };
@@ -301,13 +515,15 @@
             const changeDay = (index) => { currentDayIndex.value = index; setTimeout(() => refreshMap(), 300); };
             watch(currentTab, (newTab) => { if (newTab === 'schedule') { setTimeout(() => { if(map) map.invalidateSize(); else initOrUpdateMap(); }, 100); }});
             
-            const saveKey = '2026JP_Fixed_v1';
+            // Save Key updated
+            const saveKey = '2026JP_YangDong_Full_v1';
             watch([days, expenses, exchangeRate], () => { localStorage.setItem(saveKey, JSON.stringify({ days: days.value, expenses: expenses.value, exchangeRate: exchangeRate.value })); }, { deep: true });
             
             onMounted(() => { 
                 const saved = localStorage.getItem(saveKey); 
                 if (saved) { 
                     const parsed = JSON.parse(saved); 
+                    // 只有當 localStorage 有資料時才覆蓋，否則使用上面的預設值
                     if(parsed.days && parsed.days.length > 0) days.value = parsed.days; 
                     expenses.value = parsed.expenses || expenses.value; 
                     exchangeRate.value = parsed.exchangeRate || 0.215; 
