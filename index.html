@@ -370,30 +370,268 @@
 
             // --- 預設資料 (羊&董) ---
             const days = ref([
-                { 
-                    date: '2026-02-20', 
-                    events: [
-                        { id: 1, type: 'spot', time: '15:30', location: '三重捷運站', note: '集合' },
-                        { id: 2, type: 'spot', time: '17:00', location: '桃園機場第一航廈', note: '準備出發！' }
-                    ] 
-                },
-                { 
-                    date: '2026-02-21', 
-                    events: [
-                        { id: 3, type: 'spot', time: '06:00', location: '羽田機場第三航廈', note: '抵達東京' },
-                        { id: 4, type: 'spot', time: '07:00', location: '東京大飯店', note: '寄放行李' },
-                        { id: 5, type: 'spot', time: '08:00', location: '東京鐵塔', note: '拍照點: https://goo.gl/maps/...' },
-                        { id: 6, type: 'spot', time: '09:30', location: 'Misojyu', note: '早餐\n橘子街\n淺草文化觀光中心(5F景觀台)' },
-                        { id: 7, type: 'spot', time: '10:30', location: '淺草寺', note: '雷門、仲見世商店街、五重塔、淺草寺本堂 (求籤!)' },
-                        { id: 8, type: 'spot', time: '11:40', location: 'にょろ助', note: '午餐 (鰻魚飯)' },
-                        { id: 9, type: 'spot', time: '13:00', location: 'Torinoiru Cafe', note: '貓頭鷹咖啡廳 (Yanaka Honten)\n*搭公車前往' },
-                        { id: 10, type: 'spot', time: '14:30', location: '秋葉原電器街', note: '逛街清單:\nAnimate\nAKIHABARA Gamers\n駿河屋\nMandarake Complex\nSuper Potato\nGIGO\nRadio會館\n有都八喜6F(麵包超人冰箱貼)\n秋葉原扭蛋會館' },
-                        { id: 11, type: 'spot', time: '17:00', location: '東京地下街', note: '逛街' },
-                        { id: 12, type: 'spot', time: '19:30', location: '阿利夫拉麵 (AFURI)', note: '晚餐' },
-                        { id: 13, type: 'spot', time: '21:00', location: '東京大飯店', note: '回飯店休息' }
-                    ] 
-                }
-            ]);
+    {
+        "date": "2026-02-20",
+        "events": [
+            {
+                "id": 1,
+                "type": "spot",
+                "time": "15:30",
+                "location": "三重捷運站",
+                "note": "集合",
+                "transportMode": "Train"
+            },
+            {
+                "id": 2,
+                "type": "spot",
+                "time": "17:00",
+                "location": "桃園機場第一航廈",
+                "note": "樂桃櫃檯自助報到(QR碼)\n↓\n等候登機",
+                "transportMode": "Train"
+            }
+        ]
+    },
+    {
+        "date": "2026-02-21",
+        "events": [
+            {
+                "id": 3,
+                "type": "spot",
+                "time": "06:00",
+                "location": "羽田機場第三航廈",
+                "note": "抵達東京"
+            },
+            {
+                "id": 4,
+                "type": "spot",
+                "time": "07:00",
+                "location": "東京大飯店",
+                "note": "寄放行李"
+            },
+            {
+                "id": 5,
+                "type": "spot",
+                "time": "08:00",
+                "location": "東京鐵塔",
+                "note": "拍照點:\n❶芝公園\n❷赤羽橋站\n❸google map存的地點",
+                "transportMode": "Train"
+            },
+            {
+                "id": 6,
+                "type": "spot",
+                "time": "09:30",
+                "location": "Misojyu",
+                "note": "早餐吃完後\n↓\n橘子街",
+                "transportMode": "Train"
+            },
+            {
+                "id": 7,
+                "type": "spot",
+                "time": "10:30",
+                "location": "淺草寺",
+                "note": "• 淺草文化觀光中心(5F景觀台)\n• 雷門\n• 仲見世商店街\n• 五重塔\n• 淺草寺本堂 (求籤!)",
+                "transportMode": "Train"
+            },
+            {
+                "id": 8,
+                "type": "spot",
+                "time": "11:40",
+                "location": "にょろ助",
+                "note": "午餐 (鰻魚飯)"
+            },
+            {
+                "id": 9,
+                "type": "spot",
+                "time": "13:00",
+                "location": "Torinoiru Cafe",
+                "note": "貓頭鷹咖啡廳 (Yanaka Honten)",
+                "transportMode": "Train"
+            },
+            {
+                "id": 10,
+                "type": "spot",
+                "time": "14:30",
+                "location": "秋葉原",
+                "note": "• 電器街口\n• Animate\n• AKIHABARA Gamers\n• 駿河屋\n• Mandarake Complex\n• Super Potato\n• GIGO\n• Radio會館\n• 有都八喜6F(麵包超人冰箱貼)\n• 秋葉原扭蛋會館",
+                "transportMode": "Train"
+            },
+            {
+                "id": 11,
+                "type": "spot",
+                "time": "17:00",
+                "location": "東京地下街",
+                "note": "卡比、寶可夢、吉伊卡哇、JUMP、海賊王",
+                "transportMode": "Train"
+            },
+            {
+                "id": 12,
+                "type": "spot",
+                "time": "19:30",
+                "location": "阿利夫拉麵 (AFURI)",
+                "note": "晚餐"
+            },
+            {
+                "id": 13,
+                "type": "spot",
+                "time": "21:00",
+                "location": "東京大飯店",
+                "note": "回飯店休息"
+            }
+        ]
+    },
+    {
+        "date": "",
+        "events": [
+            {
+                "id": 1765282922645,
+                "type": "spot",
+                "time": "06:20",
+                "location": "東京大飯店",
+                "origin": "",
+                "destination": "",
+                "transportMode": "Train",
+                "note": "出發！",
+                "image": null
+            },
+            {
+                "id": 1765282966828,
+                "type": "transit",
+                "time": "06:20",
+                "location": "東京大飯店 ➝ 新宿站南口",
+                "origin": "東京大飯店",
+                "destination": "新宿站南口",
+                "transportMode": "Subway",
+                "note": "都営三田線 - 目黑\n↓\nJR山手線 - 新宿\n¥398",
+                "image": null
+            },
+            {
+                "id": 1765283394518,
+                "type": "transit",
+                "time": "07:00",
+                "location": "新宿 ➝ 富士山站",
+                "origin": "新宿",
+                "destination": "富士山站",
+                "transportMode": "Bus",
+                "note": "Highway Bus",
+                "image": null
+            },
+            {
+                "id": 1765283557085,
+                "type": "spot",
+                "time": "09:30",
+                "location": "日川時計店",
+                "origin": "",
+                "destination": "",
+                "transportMode": "Train",
+                "note": "拍照",
+                "image": null
+            },
+            {
+                "id": 1765283591675,
+                "type": "spot",
+                "time": "10:30",
+                "location": "新倉山淺間公園",
+                "origin": "",
+                "destination": "",
+                "transportMode": "Train",
+                "note": "",
+                "image": null
+            },
+            {
+                "id": 1765283646750,
+                "type": "spot",
+                "time": "12:30",
+                "location": "河口湖Lawson",
+                "origin": "",
+                "destination": "",
+                "transportMode": "Train",
+                "note": "",
+                "image": null
+            },
+            {
+                "id": 1765283701253,
+                "type": "spot",
+                "time": "12:50",
+                "location": "Fujisan Shokupan",
+                "origin": "",
+                "destination": "",
+                "transportMode": "Train",
+                "note": "買富士山形狀麵包！",
+                "image": null
+            },
+            {
+                "id": 1765283778171,
+                "type": "transit",
+                "time": "",
+                "location": "富士山站 ➝ 河口湖站",
+                "origin": "富士山站",
+                "destination": "河口湖站",
+                "transportMode": "Train",
+                "note": "富士急行 ¥224",
+                "image": null
+            },
+            {
+                "id": 1765283848132,
+                "type": "transit",
+                "time": "14:00",
+                "location": "河口湖站 ➝ 木之花美術館",
+                "origin": "河口湖站",
+                "destination": "木之花美術館",
+                "transportMode": "Taxi",
+                "note": "Uber",
+                "image": null
+            },
+            {
+                "id": 1765283923205,
+                "type": "transit",
+                "time": "17:00",
+                "location": "木之花美術館 ➝ 河口湖站",
+                "origin": "木之花美術館",
+                "destination": "河口湖站",
+                "transportMode": "Taxi",
+                "note": "Uber",
+                "image": null
+            },
+            {
+                "id": 1765283959918,
+                "type": "transit",
+                "time": "17:20",
+                "location": "河口湖站 ➝ 新宿車站",
+                "origin": "河口湖站",
+                "destination": "新宿車站",
+                "transportMode": "Bus",
+                "note": "Highway Bus",
+                "image": null
+            },
+            {
+                "id": 1765284103133,
+                "type": "transit",
+                "time": "19:30",
+                "location": "新宿站 ➝ 東京大飯店",
+                "origin": "新宿站",
+                "destination": "東京大飯店",
+                "transportMode": "Subway",
+                "note": "山手線 - 目黑\n↓\n都営三田線 - 芝公園\n¥398",
+                "image": null
+            },
+            {
+                "id": 1765284155109,
+                "type": "spot",
+                "time": "21:00",
+                "location": "東京大飯店",
+                "origin": "",
+                "destination": "",
+                "transportMode": "Train",
+                "note": "回飯店休息",
+                "image": null
+            }
+        ]
+    },
+    {
+        "date": "",
+        "events": []
+    }
+]);
 
             const tempEvent = ref({ type: 'spot', time: '', location: '', origin: '', destination: '', transportMode: 'Train', note: '', image: null });
             const peopleNames = ['羊羊', '董董']; 
@@ -552,3 +790,4 @@
 </script>
 </body>
 </html>
+
