@@ -247,7 +247,7 @@
                 </div>
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
                     <div class="text-xs font-bold text-slate-400 uppercase mb-2">永久保存 (GitHub)</div>
-                    <p class="text-[10px] text-gray-500 mb-2">產生程式碼貼回 index.html。</p>
+                    <p class="text-[10px] text-gray-500 mb-2">按下複製後，會將目前的「行程+記帳+匯率」轉成程式碼。</p>
                     <button @click="copyCodeToClipboard" class="w-full bg-slate-700 text-white py-2 rounded-lg text-sm font-bold shadow-sm flex justify-center items-center"><span v-if="copySuccess">已複製！✅</span><span v-else>複製程式碼 📋</span></button>
                 </div>
                 <div class="pt-2 border-t border-gray-100"><button @click="resetData" class="w-full text-red-400 text-xs font-bold py-2 hover:bg-red-50 rounded-lg">重置所有資料 (清空)</button></div>
@@ -357,291 +357,52 @@
             const copySuccess = ref(false);
             const previewImage = ref(null);
             const currentDayIndex = ref(0);
-            const exchangeRate = ref(0.215);
-            const mapLoading = ref(false);
             
             // Edit States
+            const mapLoading = ref(false);
             const isEditing = ref(false);
             const editingIndex = ref(null);
-            const isEditingExpense = ref(false); // New for expense edit
-            const editingExpenseIndex = ref(null); // New for expense edit
-            
+            const isEditingExpense = ref(false); 
+            const editingExpenseIndex = ref(null); 
             const draggedIndex = ref(null);
-
-            // --- 預設資料 (羊&董) ---
-            const days = ref([
-    {
-        "date": "2026-02-20",
-        "events": [
-            {
-                "id": 1,
-                "type": "spot",
-                "time": "15:30",
-                "location": "三重捷運站",
-                "note": "集合",
-                "transportMode": "Train"
-            },
-            {
-                "id": 2,
-                "type": "spot",
-                "time": "17:00",
-                "location": "桃園機場第一航廈",
-                "note": "樂桃櫃檯自助報到(QR碼)\n↓\n等候登機",
-                "transportMode": "Train"
-            }
-        ]
-    },
-    {
-        "date": "2026-02-21",
-        "events": [
-            {
-                "id": 3,
-                "type": "spot",
-                "time": "06:00",
-                "location": "羽田機場第三航廈",
-                "note": "抵達東京"
-            },
-            {
-                "id": 4,
-                "type": "spot",
-                "time": "07:00",
-                "location": "東京大飯店",
-                "note": "寄放行李"
-            },
-            {
-                "id": 5,
-                "type": "spot",
-                "time": "08:00",
-                "location": "東京鐵塔",
-                "note": "拍照點:\n❶芝公園\n❷赤羽橋站\n❸google map存的地點",
-                "transportMode": "Train"
-            },
-            {
-                "id": 6,
-                "type": "spot",
-                "time": "09:30",
-                "location": "Misojyu",
-                "note": "早餐吃完後\n↓\n橘子街",
-                "transportMode": "Train"
-            },
-            {
-                "id": 7,
-                "type": "spot",
-                "time": "10:30",
-                "location": "淺草寺",
-                "note": "• 淺草文化觀光中心(5F景觀台)\n• 雷門\n• 仲見世商店街\n• 五重塔\n• 淺草寺本堂 (求籤!)",
-                "transportMode": "Train"
-            },
-            {
-                "id": 8,
-                "type": "spot",
-                "time": "11:40",
-                "location": "にょろ助",
-                "note": "午餐 (鰻魚飯)"
-            },
-            {
-                "id": 9,
-                "type": "spot",
-                "time": "13:00",
-                "location": "Torinoiru Cafe",
-                "note": "貓頭鷹咖啡廳 (Yanaka Honten)",
-                "transportMode": "Train"
-            },
-            {
-                "id": 10,
-                "type": "spot",
-                "time": "14:30",
-                "location": "秋葉原",
-                "note": "• 電器街口\n• Animate\n• AKIHABARA Gamers\n• 駿河屋\n• Mandarake Complex\n• Super Potato\n• GIGO\n• Radio會館\n• 有都八喜6F(麵包超人冰箱貼)\n• 秋葉原扭蛋會館",
-                "transportMode": "Train"
-            },
-            {
-                "id": 11,
-                "type": "spot",
-                "time": "17:00",
-                "location": "東京地下街",
-                "note": "卡比、寶可夢、吉伊卡哇、JUMP、海賊王",
-                "transportMode": "Train"
-            },
-            {
-                "id": 12,
-                "type": "spot",
-                "time": "19:30",
-                "location": "阿利夫拉麵 (AFURI)",
-                "note": "晚餐"
-            },
-            {
-                "id": 13,
-                "type": "spot",
-                "time": "21:00",
-                "location": "東京大飯店",
-                "note": "回飯店休息"
-            }
-        ]
-    },
-    {
-        "date": "",
-        "events": [
-            {
-                "id": 1765282922645,
-                "type": "spot",
-                "time": "06:20",
-                "location": "東京大飯店",
-                "origin": "",
-                "destination": "",
-                "transportMode": "Train",
-                "note": "出發！",
-                "image": null
-            },
-            {
-                "id": 1765282966828,
-                "type": "transit",
-                "time": "06:20",
-                "location": "東京大飯店 ➝ 新宿站南口",
-                "origin": "東京大飯店",
-                "destination": "新宿站南口",
-                "transportMode": "Subway",
-                "note": "都営三田線 - 目黑\n↓\nJR山手線 - 新宿\n¥398",
-                "image": null
-            },
-            {
-                "id": 1765283394518,
-                "type": "transit",
-                "time": "07:00",
-                "location": "新宿 ➝ 富士山站",
-                "origin": "新宿",
-                "destination": "富士山站",
-                "transportMode": "Bus",
-                "note": "Highway Bus",
-                "image": null
-            },
-            {
-                "id": 1765283557085,
-                "type": "spot",
-                "time": "09:30",
-                "location": "日川時計店",
-                "origin": "",
-                "destination": "",
-                "transportMode": "Train",
-                "note": "拍照",
-                "image": null
-            },
-            {
-                "id": 1765283591675,
-                "type": "spot",
-                "time": "10:30",
-                "location": "新倉山淺間公園",
-                "origin": "",
-                "destination": "",
-                "transportMode": "Train",
-                "note": "",
-                "image": null
-            },
-            {
-                "id": 1765283646750,
-                "type": "spot",
-                "time": "12:30",
-                "location": "河口湖Lawson",
-                "origin": "",
-                "destination": "",
-                "transportMode": "Train",
-                "note": "",
-                "image": null
-            },
-            {
-                "id": 1765283701253,
-                "type": "spot",
-                "time": "12:50",
-                "location": "Fujisan Shokupan",
-                "origin": "",
-                "destination": "",
-                "transportMode": "Train",
-                "note": "買富士山形狀麵包！",
-                "image": null
-            },
-            {
-                "id": 1765283778171,
-                "type": "transit",
-                "time": "",
-                "location": "富士山站 ➝ 河口湖站",
-                "origin": "富士山站",
-                "destination": "河口湖站",
-                "transportMode": "Train",
-                "note": "富士急行 ¥224",
-                "image": null
-            },
-            {
-                "id": 1765283848132,
-                "type": "transit",
-                "time": "14:00",
-                "location": "河口湖站 ➝ 木之花美術館",
-                "origin": "河口湖站",
-                "destination": "木之花美術館",
-                "transportMode": "Taxi",
-                "note": "Uber",
-                "image": null
-            },
-            {
-                "id": 1765283923205,
-                "type": "transit",
-                "time": "17:00",
-                "location": "木之花美術館 ➝ 河口湖站",
-                "origin": "木之花美術館",
-                "destination": "河口湖站",
-                "transportMode": "Taxi",
-                "note": "Uber",
-                "image": null
-            },
-            {
-                "id": 1765283959918,
-                "type": "transit",
-                "time": "17:20",
-                "location": "河口湖站 ➝ 新宿車站",
-                "origin": "河口湖站",
-                "destination": "新宿車站",
-                "transportMode": "Bus",
-                "note": "Highway Bus",
-                "image": null
-            },
-            {
-                "id": 1765284103133,
-                "type": "transit",
-                "time": "19:30",
-                "location": "新宿站 ➝ 東京大飯店",
-                "origin": "新宿站",
-                "destination": "東京大飯店",
-                "transportMode": "Subway",
-                "note": "山手線 - 目黑\n↓\n都営三田線 - 芝公園\n¥398",
-                "image": null
-            },
-            {
-                "id": 1765284155109,
-                "type": "spot",
-                "time": "21:00",
-                "location": "東京大飯店",
-                "origin": "",
-                "destination": "",
-                "transportMode": "Train",
-                "note": "回飯店休息",
-                "image": null
-            }
-        ]
-    },
-    {
-        "date": "",
-        "events": []
-    }
-]);
 
             const tempEvent = ref({ type: 'spot', time: '', location: '', origin: '', destination: '', transportMode: 'Train', note: '', image: null });
             const peopleNames = ['羊羊', '董董']; 
-            
-            // Expense Data Structure Updated: currency default JPY
-            const expenses = ref([]);
             const newExpense = ref({ payer: '羊羊', item: '', amount: '', currency: 'JPY' });
-            
             const weatherData = ref({});
             let map = null, markers = [];
+
+            // -------------------------------------------------------------
+            // ⭐ 核心資料 (請複製並覆蓋這區塊以永久保存)
+            // -------------------------------------------------------------
+            const days = ref([
+                { 
+                    date: '2026-02-20', 
+                    events: [
+                        { id: 1, type: 'spot', time: '15:30', location: '三重捷運站', note: '集合' },
+                        { id: 2, type: 'spot', time: '17:00', location: '桃園機場第一航廈', note: '準備出發！' }
+                    ] 
+                },
+                { 
+                    date: '2026-02-21', 
+                    events: [
+                        { id: 3, type: 'spot', time: '06:00', location: '羽田機場第三航廈', note: '抵達東京' },
+                        { id: 4, type: 'spot', time: '07:00', location: '東京大飯店', note: '寄放行李' },
+                        { id: 5, type: 'spot', time: '08:00', location: '東京鐵塔', note: '拍照點: https://goo.gl/maps/...' },
+                        { id: 6, type: 'spot', time: '09:30', location: 'Misojyu', note: '早餐\n橘子街\n淺草文化觀光中心(5F景觀台)' },
+                        { id: 7, type: 'spot', time: '10:30', location: '淺草寺', note: '雷門、仲見世商店街、五重塔、淺草寺本堂 (求籤!)' },
+                        { id: 8, type: 'spot', time: '11:40', location: 'にょろ助', note: '午餐 (鰻魚飯)' },
+                        { id: 9, type: 'spot', time: '13:00', location: 'Torinoiru Cafe', note: '貓頭鷹咖啡廳 (Yanaka Honten)\n*搭公車前往' },
+                        { id: 10, type: 'spot', time: '14:30', location: '秋葉原電器街', note: '逛街清單:\nAnimate\nAKIHABARA Gamers\n駿河屋\nMandarake Complex\nSuper Potato\nGIGO\nRadio會館\n有都八喜6F(麵包超人冰箱貼)\n秋葉原扭蛋會館' },
+                        { id: 11, type: 'spot', time: '17:00', location: '東京地下街', note: '逛街' },
+                        { id: 12, type: 'spot', time: '19:30', location: '阿利夫拉麵 (AFURI)', note: '晚餐' },
+                        { id: 13, type: 'spot', time: '21:00', location: '東京大飯店', note: '回飯店休息' }
+                    ] 
+                }
+            ]);
+            const expenses = ref([]);
+            const exchangeRate = ref(0.215);
+            // -------------------------------------------------------------
 
             // --- Image Logic ---
             const handleImageUpload = (event) => {
@@ -677,73 +438,42 @@
             const getGoogleMapsLink = (o, d) => `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(o)}&destination=${encodeURIComponent(d)}&travelmode=transit`;
             const getTransportIcon = (m) => ({ 'Train': '🚆', 'Subway': '🚇', 'Bus': '🚌', 'Taxi': '🚕', 'Car': '🚗', 'Walk': '🚶' }[m] || '🚆');
 
-            // --- Expense Logic (Updated for Currency & Edit) ---
-            
-            const openAddExpense = () => {
-                isEditingExpense.value = false;
-                editingExpenseIndex.value = null;
-                newExpense.value = { payer: '羊羊', item: '', amount: '', currency: 'JPY' };
-                showExpenseModal.value = true;
-            };
-
-            const openEditExpense = (index) => {
-                isEditingExpense.value = true;
-                editingExpenseIndex.value = index;
-                // Clone existing data to newExpense for editing
-                newExpense.value = JSON.parse(JSON.stringify(expenses.value[index]));
-                // Compatibility check: ensure currency exists
-                if (!newExpense.value.currency) newExpense.value.currency = 'JPY';
-                showExpenseModal.value = true;
-            };
-
+            // --- Expense Logic ---
+            const openAddExpense = () => { isEditingExpense.value = false; editingExpenseIndex.value = null; newExpense.value = { payer: '羊羊', item: '', amount: '', currency: 'JPY' }; showExpenseModal.value = true; };
+            const openEditExpense = (index) => { isEditingExpense.value = true; editingExpenseIndex.value = index; newExpense.value = JSON.parse(JSON.stringify(expenses.value[index])); if (!newExpense.value.currency) newExpense.value.currency = 'JPY'; showExpenseModal.value = true; };
             const saveExpense = () => {
                 if (!newExpense.value.item || !newExpense.value.amount) return alert('Please fill all fields');
-                
-                if (isEditingExpense.value && editingExpenseIndex.value !== null) {
-                    // Update
-                    expenses.value[editingExpenseIndex.value] = { ...newExpense.value };
-                } else {
-                    // Create (Add to top)
-                    expenses.value.unshift({ ...newExpense.value });
-                }
-                
+                if (isEditingExpense.value && editingExpenseIndex.value !== null) { expenses.value[editingExpenseIndex.value] = { ...newExpense.value }; } else { expenses.value.unshift({ ...newExpense.value }); }
                 showExpenseModal.value = false;
             };
-
-            const deleteExpense = (i) => {
-                if(confirm('Delete this record?')) expenses.value.splice(i, 1);
-            };
-
-            // Calculated in JPY base
-            const totalSpentJPY = computed(() => {
-                return expenses.value.reduce((sum, item) => {
-                    if (item.currency === 'TWD') {
-                        // Convert TWD to JPY for total sum (Amount / Rate)
-                        return sum + (item.amount / exchangeRate.value);
-                    }
-                    return sum + item.amount;
-                }, 0);
-            });
-
+            const deleteExpense = (i) => { if(confirm('Delete this record?')) expenses.value.splice(i, 1); };
+            const totalSpentJPY = computed(() => expenses.value.reduce((sum, item) => item.currency === 'TWD' ? sum + (item.amount / exchangeRate.value) : sum + item.amount, 0));
             const perPersonShare = computed(() => peopleNames.length ? Math.round(totalSpentJPY.value / peopleNames.length) : 0);
-            
             const people = computed(() => peopleNames.map(name => {
-                // Calculate how much this person paid (converted to JPY base)
-                const paidInJPY = expenses.value
-                    .filter(e => e.payer === name)
-                    .reduce((sum, e) => {
-                        if (e.currency === 'TWD') return sum + (e.amount / exchangeRate.value);
-                        return sum + e.amount;
-                    }, 0);
-                
+                const paidInJPY = expenses.value.filter(e => e.payer === name).reduce((sum, e) => e.currency === 'TWD' ? sum + (e.amount / exchangeRate.value) : sum + e.amount, 0);
                 return { name, balance: paidInJPY - perPersonShare.value };
             }));
 
-            // --- Data Management ---
-            const exportData = () => { const data = { days: days.value, expenses: expenses.value, exchangeRate: exchangeRate.value }; const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `2026JP_Finance_Backup_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url); };
+            // --- Data Management (Updated) ---
+            const exportData = () => { const data = { days: days.value, expenses: expenses.value, exchangeRate: exchangeRate.value }; const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `2026JP_Full_Backup_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url); };
             const importData = (event) => { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { try { const parsed = JSON.parse(e.target.result); if(confirm('Overwrite current data?')) { days.value = parsed.days || days.value; expenses.value = parsed.expenses || expenses.value; exchangeRate.value = parsed.exchangeRate || exchangeRate.value; showDataModal.value = false; refreshMap(); alert('Success!'); } } catch (err) { alert('Invalid file!'); } }; reader.readAsText(file); };
-            const copyCodeToClipboard = () => { const jsonString = JSON.stringify(days.value, null, 4); const codeSnippet = `const days = ref(${jsonString});`; navigator.clipboard.writeText(codeSnippet).then(() => { copySuccess.value = true; setTimeout(() => copySuccess.value = false, 2000); alert('Code copied!'); }); };
-            const resetData = () => { if(confirm('Reset all data?')) { localStorage.removeItem('2026JP_Pro_Finance_v1'); location.reload(); }};
+            
+            // ⭐ 升級版：複製程式碼 (包含 days, expenses, exchangeRate)
+            const copyCodeToClipboard = () => { 
+                const daysJson = JSON.stringify(days.value, null, 4);
+                const expensesJson = JSON.stringify(expenses.value, null, 4);
+                const rateJson = exchangeRate.value;
+
+                const codeSnippet = `
+// 📋 複製區塊開始
+const days = ref(${daysJson});
+const expenses = ref(${expensesJson});
+const exchangeRate = ref(${rateJson});
+// 📋 複製區塊結束
+`;
+                navigator.clipboard.writeText(codeSnippet).then(() => { copySuccess.value = true; setTimeout(() => copySuccess.value = false, 2000); alert('程式碼已複製！\n\n請打開 index.html，找到 "const days = ref([...]);" 到 "exchangeRate" 的區塊，直接覆蓋貼上。'); }); 
+            };
+            const resetData = () => { if(confirm('Reset all data?')) { localStorage.removeItem('2026JP_Full_v1'); location.reload(); }};
 
             // --- Drag & Drop ---
             const onDragStart = (index, event) => { draggedIndex.value = index; event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.dropEffect = 'move'; };
@@ -756,8 +486,7 @@
             const changeDay = (index) => { currentDayIndex.value = index; setTimeout(() => refreshMap(), 300); };
             watch(currentTab, (newTab) => { if (newTab === 'schedule') { setTimeout(() => { if(map) map.invalidateSize(); else initOrUpdateMap(); }, 100); }});
             
-            // Save Key updated
-            const saveKey = '2026JP_Pro_Finance_v1';
+            const saveKey = '2026JP_Full_v1';
             watch([days, expenses, exchangeRate], () => { localStorage.setItem(saveKey, JSON.stringify({ days: days.value, expenses: expenses.value, exchangeRate: exchangeRate.value })); }, { deep: true });
             
             onMounted(() => { 
@@ -781,7 +510,6 @@
                 exportData, importData, copyCodeToClipboard, copySuccess, resetData,
                 onDragStart, onDragEnter, onDrop, onDragEnd, draggedIndex,
                 handleImageUpload, viewImage, previewImage,
-                // New Exports for Finance
                 isEditingExpense, openAddExpense, openEditExpense, saveExpense,
                 addDay: () => days.value.push({date:'', events:[]}) 
             };
@@ -790,4 +518,3 @@
 </script>
 </body>
 </html>
-
