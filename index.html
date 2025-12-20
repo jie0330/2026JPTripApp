@@ -401,72 +401,571 @@
             // ⭐ 核心資料 (已整合你提供的數據)
             // -------------------------------------------------------------
             const days = ref([
-                {
-                    "date": "2026-02-20",
-                    "events": [
-                        { "id": 1, "type": "spot", "time": "15:30", "location": "三重捷運站", "note": "集合", "transportMode": "Train" },
-                        { "id": 2, "type": "spot", "time": "17:00", "location": "桃園機場第一航廈", "note": "樂桃櫃檯自助報到(QR碼)\n↓\n等候登機", "transportMode": "Train" }
-                    ]
-                },
-                {
-                    "date": "2026-02-21",
-                    "events": [
-                        { "id": 3, "type": "spot", "time": "06:00", "location": "羽田機場第三航廈", "note": "抵達東京" },
-                        { "id": 4, "type": "spot", "time": "07:00", "location": "東京大飯店", "note": "寄放行李" },
-                        { "id": 5, "type": "spot", "time": "08:00", "location": "東京鐵塔", "note": "拍照點:\n❶芝公園\n❷赤羽橋站\n❸google map存的地點", "transportMode": "Train" },
-                        { "id": 6, "type": "spot", "time": "09:30", "location": "Misojyu", "note": "早餐吃完後\n↓\n橘子街", "transportMode": "Train" },
-                        { "id": 7, "type": "spot", "time": "10:30", "location": "淺草寺", "note": "• 淺草文化觀光中心(5F景觀台)\n• 雷門\n• 仲見世商店街\n• 五重塔\n• 淺草寺本堂 (求籤!)", "transportMode": "Train" },
-                        { "id": 8, "type": "spot", "time": "11:40", "location": "にょろ助", "note": "午餐 (鰻魚飯)" },
-                        { "id": 9, "type": "spot", "time": "13:00", "location": "Torinoiru Cafe", "note": "貓頭鷹咖啡廳 (Yanaka Honten)", "transportMode": "Train" },
-                        { "id": 10, "type": "spot", "time": "14:30", "location": "秋葉原", "note": "• 電器街口\n• Animate\n• AKIHABARA Gamers\n• 駿河屋\n• Mandarake Complex\n• Super Potato\n• GIGO\n• Radio會館\n• 有都八喜6F(麵包超人冰箱貼)\n• 秋葉原扭蛋會館", "transportMode": "Train" },
-                        { "id": 11, "type": "spot", "time": "17:00", "location": "東京地下街", "note": "卡比、寶可夢、吉伊卡哇、JUMP、海賊王", "transportMode": "Train" },
-                        { "id": 12, "type": "spot", "time": "19:30", "location": "阿利夫拉麵 (AFURI)", "note": "晚餐" },
-                        { "id": 13, "type": "spot", "time": "21:00", "location": "東京大飯店", "note": "回飯店休息" }
-                    ]
-                },
-                {
-                    "date": "2026-02-22",
-                    "events": [
-                        { "id": 1765282922645, "type": "spot", "time": "06:20", "location": "東京大飯店", "note": "出發！", "transportMode": "Train" },
-                        { "id": 1765282966828, "type": "transit", "time": "06:20", "location": "東京大飯店 ➝ 新宿站南口", "origin": "東京大飯店", "destination": "新宿站南口", "transportMode": "Subway", "note": "都営三田線 - 目黑\n↓\nJR山手線 - 新宿\n¥398" },
-                        { "id": 1765283394518, "type": "transit", "time": "07:00", "location": "新宿 ➝ 富士山站", "origin": "新宿", "destination": "富士山站", "transportMode": "Bus", "note": "Highway Bus" },
-                        { "id": 1765283557085, "type": "spot", "time": "09:30", "location": "日川時計店", "note": "拍照", "transportMode": "Train" },
-                        { "id": 1765283591675, "type": "spot", "time": "10:30", "location": "新倉山淺間公園", "note": "", "transportMode": "Train" },
-                        { "id": 1765283646750, "type": "spot", "time": "12:30", "location": "河口湖Lawson", "note": "", "transportMode": "Train" },
-                        { "id": 1765283701253, "type": "spot", "time": "12:50", "location": "Fujisan Shokupan", "note": "買富士山形狀麵包！", "transportMode": "Train" },
-                        { "id": 1765283848132, "type": "transit", "time": "14:00", "location": "河口湖站 ➝ 木之花美術館", "origin": "河口湖站", "destination": "木之花美術館", "transportMode": "Taxi", "note": "Uber" },
-                        { "id": 1765283923205, "type": "transit", "time": "17:00", "location": "木之花美術館 ➝ 河口湖站", "origin": "木之花美術館", "destination": "河口湖站", "transportMode": "Taxi", "note": "Uber" },
-                        { "id": 1765283959918, "type": "transit", "time": "17:20", "location": "河口湖站 ➝ 新宿車站", "origin": "河口湖站", "destination": "新宿車站", "transportMode": "Bus", "note": "Highway Bus" },
-                        { "id": 1765284103133, "type": "transit", "time": "19:30", "location": "新宿站 ➝ 東京大飯店", "origin": "新宿站", "destination": "東京大飯店", "transportMode": "Subway", "note": "山手線 - 目黑\n↓\n都営三田線 - 芝公園\n¥398" },
-                        { "id": 1765284155109, "type": "spot", "time": "21:00", "location": "東京大飯店", "note": "回飯店休息", "transportMode": "Train" }
-                    ]
-                },
-                {
-                    "date": "2026-02-23",
-                    "events": [
-                        { "id": 1765440481292, "type": "spot", "time": "09:00", "location": "東京大飯店", "note": "出發!", "transportMode": "Train" },
-                        { "id": 1765440504331, "type": "spot", "time": "09:30", "location": "東京巨蛋", "note": "逛逛打卡", "transportMode": "Train" },
-                        { "id": 1765440525283, "type": "spot", "time": "10:00", "location": "新宿", "note": "", "transportMode": "Train" },
-                        { "id": 1765440553514, "type": "spot", "time": "13:00", "location": "表參道原宿", "note": "", "transportMode": "Train" },
-                        { "id": 1765440566954, "type": "spot", "time": "17:30", "location": "澀谷", "note": "", "transportMode": "Train" },
-                        { "id": 1765440597162, "type": "spot", "time": "20:30", "location": "東京大飯店", "note": "回飯店休息\n明天要早起!", "transportMode": "Train" }
-                    ]
-                },
-                {
-                    "date": "2026-02-24",
-                    "events": []
-                }
-            ]);
-
-            const expenses = ref([
-                { "type": "transfer", "payer": "董董", "payee": "羊羊", "item": "", "amount": 20000, "currency": "TWD" },
-                { "type": "expense", "payer": "羊羊", "payee": "董董", "item": "東京大飯店(3天2夜)", "amount": 9475, "currency": "TWD" },
-                { "type": "expense", "payer": "羊羊", "payee": "董董", "item": "AIRDO回程機票", "amount": 3755, "currency": "TWD" },
-                { "type": "expense", "payer": "羊羊", "payee": "董董", "item": "JAL去程機票", "amount": 4712, "currency": "TWD" },
-                { "type": "expense", "payer": "羊羊", "payee": "董董", "item": "樂桃回程機票", "amount": 13908, "currency": "TWD" },
-                { "type": "expense", "payer": "羊羊", "payee": "董董", "item": "樂桃去程機票", "amount": 12620, "currency": "TWD" }
-            ]);
-            const exchangeRate = ref(0.215);
+    {
+        "date": "2026-02-20",
+        "events": [
+            {
+                "id": 1,
+                "type": "spot",
+                "time": "15:30",
+                "location": "三重捷運站",
+                "note": "集合",
+                "transportMode": "Train"
+            },
+            {
+                "id": 2,
+                "type": "spot",
+                "time": "17:00",
+                "location": "桃園機場第一航廈",
+                "note": "樂桃櫃檯自助報到(QR碼)\n↓\n等候登機",
+                "transportMode": "Train"
+            }
+        ]
+    },
+    {
+        "date": "2026-02-21",
+        "events": [
+            {
+                "id": 3,
+                "type": "spot",
+                "time": "06:00",
+                "location": "羽田機場第三航廈",
+                "note": "抵達東京"
+            },
+            {
+                "id": 4,
+                "type": "spot",
+                "time": "07:00",
+                "location": "東京大飯店",
+                "note": "寄放行李"
+            },
+            {
+                "id": 5,
+                "type": "spot",
+                "time": "08:00",
+                "location": "東京鐵塔",
+                "note": "拍照點:\n❶芝公園\n❷赤羽橋站\n❸google map存的地點",
+                "transportMode": "Train"
+            },
+            {
+                "id": 6,
+                "type": "spot",
+                "time": "09:30",
+                "location": "Misojyu",
+                "note": "早餐吃完後\n↓\n橘子街",
+                "transportMode": "Train"
+            },
+            {
+                "id": 7,
+                "type": "spot",
+                "time": "10:30",
+                "location": "淺草寺",
+                "note": "• 淺草文化觀光中心(5F景觀台)\n• 雷門\n• 仲見世商店街\n• 五重塔\n• 淺草寺本堂 (求籤!)",
+                "transportMode": "Train"
+            },
+            {
+                "id": 8,
+                "type": "spot",
+                "time": "11:40",
+                "location": "にょろ助",
+                "note": "午餐 (鰻魚飯)"
+            },
+            {
+                "id": 9,
+                "type": "spot",
+                "time": "13:00",
+                "location": "Torinoiru Cafe",
+                "note": "貓頭鷹咖啡廳 (Yanaka Honten)",
+                "transportMode": "Train"
+            },
+            {
+                "id": 10,
+                "type": "spot",
+                "time": "14:30",
+                "location": "秋葉原",
+                "note": "• 電器街口\n• Animate\n• AKIHABARA Gamers\n• 駿河屋\n• Mandarake Complex\n• Super Potato\n• GIGO\n• Radio會館\n• 有都八喜6F(麵包超人冰箱貼)\n• 秋葉原扭蛋會館",
+                "transportMode": "Train"
+            },
+            {
+                "id": 11,
+                "type": "spot",
+                "time": "17:00",
+                "location": "東京地下街",
+                "note": "卡比、寶可夢、吉伊卡哇、JUMP、海賊王",
+                "transportMode": "Train"
+            },
+            {
+                "id": 12,
+                "type": "spot",
+                "time": "19:30",
+                "location": "阿利夫拉麵 (AFURI)",
+                "note": "晚餐"
+            },
+            {
+                "id": 13,
+                "type": "spot",
+                "time": "21:00",
+                "location": "東京大飯店",
+                "note": "回飯店休息"
+            }
+        ]
+    },
+    {
+        "date": "2026-02-22",
+        "events": [
+            {
+                "id": 1765282922645,
+                "type": "spot",
+                "time": "06:20",
+                "location": "東京大飯店",
+                "note": "出發！",
+                "transportMode": "Train"
+            },
+            {
+                "id": 1765282966828,
+                "type": "transit",
+                "time": "06:20",
+                "location": "東京大飯店 ➝ 新宿站南口",
+                "origin": "東京大飯店",
+                "destination": "新宿站南口",
+                "transportMode": "Subway",
+                "note": "都営三田線 - 目黑\n↓\nJR山手線 - 新宿\n¥398"
+            },
+            {
+                "id": 1765283394518,
+                "type": "transit",
+                "time": "07:00",
+                "location": "新宿 ➝ 富士山站",
+                "origin": "新宿",
+                "destination": "富士山站",
+                "transportMode": "Bus",
+                "note": "Highway Bus"
+            },
+            {
+                "id": 1765283557085,
+                "type": "spot",
+                "time": "09:30",
+                "location": "日川時計店",
+                "note": "拍照",
+                "transportMode": "Train",
+                "image": null
+            },
+            {
+                "id": 1765283591675,
+                "type": "spot",
+                "time": "10:30",
+                "location": "新倉山淺間公園",
+                "note": "",
+                "transportMode": "Train",
+                "image": null
+            },
+            {
+                "id": 1765283646750,
+                "type": "spot",
+                "time": "12:30",
+                "location": "河口湖Lawson",
+                "note": "",
+                "transportMode": "Train",
+                "image": null
+            },
+            {
+                "id": 1765283701253,
+                "type": "spot",
+                "time": "12:50",
+                "location": "Fujisan Shokupan",
+                "note": "買富士山形狀麵包！",
+                "transportMode": "Train",
+                "image": null
+            },
+            {
+                "id": 1765283848132,
+                "type": "transit",
+                "time": "14:00",
+                "location": "河口湖站 ➝ 木之花美術館",
+                "origin": "河口湖站",
+                "destination": "木之花美術館",
+                "transportMode": "Taxi",
+                "note": "Uber"
+            },
+            {
+                "id": 1765283923205,
+                "type": "transit",
+                "time": "17:00",
+                "location": "木之花美術館 ➝ 河口湖站",
+                "origin": "木之花美術館",
+                "destination": "河口湖站",
+                "transportMode": "Taxi",
+                "note": "Uber"
+            },
+            {
+                "id": 1765283959918,
+                "type": "transit",
+                "time": "17:20",
+                "location": "河口湖站 ➝ 新宿車站",
+                "origin": "河口湖站",
+                "destination": "新宿車站",
+                "transportMode": "Bus",
+                "note": "Highway Bus"
+            },
+            {
+                "id": 1765284103133,
+                "type": "transit",
+                "time": "19:30",
+                "location": "新宿站 ➝ 東京大飯店",
+                "origin": "新宿站",
+                "destination": "東京大飯店",
+                "transportMode": "Subway",
+                "note": "山手線 - 目黑\n↓\n都営三田線 - 芝公園\n¥398"
+            },
+            {
+                "id": 1765284155109,
+                "type": "spot",
+                "time": "21:00",
+                "location": "東京大飯店",
+                "note": "回飯店休息",
+                "transportMode": "Train"
+            }
+        ]
+    },
+    {
+        "date": "2026-02-23",
+        "events": [
+            {
+                "id": 1765440481292,
+                "type": "spot",
+                "time": "09:00",
+                "location": "東京大飯店",
+                "note": "出發!",
+                "transportMode": "Train"
+            },
+            {
+                "id": 1765440504331,
+                "type": "spot",
+                "time": "09:30",
+                "location": "東京巨蛋",
+                "note": "逛逛打卡",
+                "transportMode": "Train"
+            },
+            {
+                "id": 1765440525283,
+                "type": "spot",
+                "time": "10:00",
+                "location": "新宿",
+                "note": "",
+                "transportMode": "Train"
+            },
+            {
+                "id": 1765440553514,
+                "type": "spot",
+                "time": "13:00",
+                "location": "表參道原宿",
+                "note": "",
+                "transportMode": "Train"
+            },
+            {
+                "id": 1765440566954,
+                "type": "spot",
+                "time": "17:30",
+                "location": "澀谷",
+                "note": "",
+                "transportMode": "Train"
+            },
+            {
+                "id": 1765440597162,
+                "type": "spot",
+                "time": "20:30",
+                "location": "東京大飯店",
+                "note": "回飯店休息\n明天要早起!",
+                "transportMode": "Train"
+            }
+        ]
+    },
+    {
+        "date": "2026-02-24",
+        "events": [
+            {
+                "id": 1765803100810,
+                "type": "transit",
+                "time": "04:30",
+                "location": "東京大飯店 ➝ 羽田機場",
+                "origin": "東京大飯店",
+                "destination": "羽田機場",
+                "transportMode": "Taxi",
+                "note": "",
+                "image": null
+            },
+            {
+                "id": 1765803183394,
+                "type": "transit",
+                "time": "07:35",
+                "location": "羽田機場 ➝ 函館機場",
+                "origin": "羽田機場",
+                "destination": "函館機場",
+                "transportMode": "Train",
+                "note": "",
+                "image": null
+            },
+            {
+                "id": 1766219122817,
+                "type": "transit",
+                "time": "",
+                "location": "函館機場 ➝ 函館JR駅",
+                "origin": "函館機場",
+                "destination": "函館JR駅",
+                "transportMode": "Bus",
+                "note": "機場巴士 ¥700(只收現金)\n抵達後要買市電一日卷 ¥600",
+                "image": null
+            },
+            {
+                "id": 1766220694997,
+                "type": "transit",
+                "time": "10:30",
+                "location": "函館JR駅 ➝ 函館JR INN",
+                "origin": "函館JR駅",
+                "destination": "函館JR INN",
+                "transportMode": "Walk",
+                "note": "",
+                "image": null
+            },
+            {
+                "id": 1766220736461,
+                "type": "spot",
+                "time": "10:50",
+                "location": "函館JR INN",
+                "origin": "",
+                "destination": "",
+                "transportMode": "Train",
+                "note": "寄放行李",
+                "image": null
+            },
+            {
+                "id": 1766220854397,
+                "type": "transit",
+                "time": "11:00",
+                "location": "函館JR INN ➝ 根室花 函館店",
+                "origin": "函館JR INN",
+                "destination": "根室花 函館店",
+                "transportMode": "Walk",
+                "note": "",
+                "image": null
+            },
+            {
+                "id": 1766220917469,
+                "type": "spot",
+                "time": "11:30",
+                "location": "根室花 函館店",
+                "origin": "",
+                "destination": "",
+                "transportMode": "Train",
+                "note": "",
+                "image": null
+            },
+            {
+                "id": 1766221049360,
+                "type": "transit",
+                "time": "12:30",
+                "location": "根室花 函館店 ➝ 八幡坂",
+                "origin": "根室花 函館店",
+                "destination": "八幡坂",
+                "transportMode": "Bus",
+                "note": "市電 函館站前\n↓\n市電 十字街",
+                "image": null
+            },
+            {
+                "id": 1766221210270,
+                "type": "spot",
+                "time": "13:00",
+                "location": "八幡坂",
+                "origin": "",
+                "destination": "",
+                "transportMode": "Train",
+                "note": "日和坡",
+                "image": null
+            },
+            {
+                "id": 1766221259386,
+                "type": "transit",
+                "time": "13:30",
+                "location": "八幡坂 ➝ 金森紅磚倉庫",
+                "origin": "八幡坂",
+                "destination": "金森紅磚倉庫",
+                "transportMode": "Walk",
+                "note": "",
+                "image": null
+            },
+            {
+                "id": 1766221319658,
+                "type": "spot",
+                "time": "13:50",
+                "location": "金森紅磚倉庫",
+                "origin": "",
+                "destination": "",
+                "transportMode": "Train",
+                "note": "",
+                "image": null
+            },
+            {
+                "id": 1766221394592,
+                "type": "transit",
+                "time": "14:30",
+                "location": "金森紅磚倉庫 ➝ 五稜郭",
+                "origin": "金森紅磚倉庫",
+                "destination": "五稜郭",
+                "transportMode": "Bus",
+                "note": "市電 十字街\n↓\n市電 五稜郭公園前",
+                "image": null
+            },
+            {
+                "id": 1766221530747,
+                "type": "spot",
+                "time": "15:00",
+                "location": "五稜郭",
+                "origin": "",
+                "destination": "",
+                "transportMode": "Train",
+                "note": "觀望台 ¥1200",
+                "image": null
+            },
+            {
+                "id": 1766221759131,
+                "type": "transit",
+                "time": "16:30",
+                "location": "五稜郭 ➝ 一文字拉麵 函館店",
+                "origin": "五稜郭",
+                "destination": "一文字拉麵 函館店",
+                "transportMode": "Bus",
+                "note": "市電 五稜郭公園前\n↓\n市電 湯川溫泉",
+                "image": null
+            },
+            {
+                "id": 1766222009074,
+                "type": "spot",
+                "time": "17:00",
+                "location": "一文字拉麵 函館店",
+                "origin": "",
+                "destination": "",
+                "transportMode": "Train",
+                "note": "",
+                "image": null
+            },
+            {
+                "id": 1766222266811,
+                "type": "transit",
+                "time": "18:00",
+                "location": "一文字拉麵 函館店 ➝ 函館山纜車山麓站",
+                "origin": "一文字拉麵 函館店",
+                "destination": "函館山纜車山麓站",
+                "transportMode": "Bus",
+                "note": "市電 湯川溫泉\n↓\n市電 寶來町、十字街",
+                "image": null
+            },
+            {
+                "id": 1766222300499,
+                "type": "spot",
+                "time": "19:00",
+                "location": "函館山",
+                "origin": "",
+                "destination": "",
+                "transportMode": "Train",
+                "note": "來回 ¥1800\n\n上山末班 20：50 (靠左)\n下山末班 21：00 (靠右)",
+                "image": null
+            },
+            {
+                "id": 1766222642610,
+                "type": "transit",
+                "time": "20:00",
+                "location": "函館山 ➝ 函館JR INN",
+                "origin": "函館山",
+                "destination": "函館JR INN",
+                "transportMode": "Bus",
+                "note": "市電 十字街\n↓\n市電 函館駅前",
+                "image": null
+            },
+            {
+                "id": 1766222689953,
+                "type": "spot",
+                "time": "",
+                "location": "函館JR INN",
+                "origin": "",
+                "destination": "",
+                "transportMode": "Train",
+                "note": "回飯店休息\n明天一樣要早起 ;3",
+                "image": null
+            }
+        ]
+    },
+    {
+        "date": "2026-02-25",
+        "events": []
+    },
+    {
+        "date": "2026-02-26",
+        "events": []
+    },
+    {
+        "date": "2026-02-27",
+        "events": []
+    },
+    {
+        "date": "2026-02-28",
+        "events": []
+    },
+    {
+        "date": "2026-03-01",
+        "events": []
+    }
+]);
+const expenses = ref([
+    {
+        "type": "transfer",
+        "payer": "董董",
+        "payee": "羊羊",
+        "item": "",
+        "amount": 25000,
+        "currency": "TWD"
+    },
+    {
+        "type": "expense",
+        "payer": "羊羊",
+        "payee": "董董",
+        "item": "東京大飯店(3天2夜)",
+        "amount": 9475,
+        "currency": "TWD"
+    },
+    {
+        "type": "expense",
+        "payer": "羊羊",
+        "payee": "董董",
+        "item": "AIRDO回程機票",
+        "amount": 3755,
+        "currency": "TWD"
+    },
+    {
+        "type": "expense",
+        "payer": "羊羊",
+        "payee": "董董",
+        "item": "JAL去程機票",
+        "amount": 4712,
+        "currency": "TWD"
+    },
+    {
+        "type": "expense",
+        "payer": "羊羊",
+        "payee": "董董",
+        "item": "樂桃回程機票",
+        "amount": 13908,
+        "currency": "TWD"
+    },
+    {
+        "type": "expense",
+        "payer": "羊羊",
+        "payee": "董董",
+        "item": "樂桃去程機票",
+        "amount": 12620,
+        "currency": "TWD"
+    }
+]);
+const exchangeRate = ref(0.215);
             // -------------------------------------------------------------
 
             // --- Weather Icon Logic ---
@@ -549,3 +1048,4 @@
 </script>
 </body>
 </html>
+
