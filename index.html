@@ -156,12 +156,14 @@
                 
                 <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
                     <label class="block text-xs font-bold text-gray-400 mb-2">Image Path / URL</label>
-                    <div v-if="tempEvent.image" class="relative mb-2">
+                    
+                    <div v-if="tempEvent.image" class="relative mb-2 bg-white rounded-lg border border-gray-200">
                         <img :src="tempEvent.image" class="w-full h-32 object-cover rounded-lg" onerror="this.style.display='none'">
-                        <button @click="tempEvent.image = ''" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow">×</button>
+                        <button @click="tempEvent.image = ''" class="absolute top-1 right-1 bg-gray-800/80 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow hover:bg-red-500 transition-colors">×</button>
                     </div>
-                    <input v-model="tempEvent.image" type="text" placeholder="images/fuji.jpg or https://..." class="w-full bg-white p-2 rounded-lg border border-gray-200 text-xs text-gray-600 focus:border-winter outline-none">
-                    <p class="text-[10px] text-gray-400 mt-1">請輸入 `images/檔名.jpg` 或圖片網址</p>
+
+                    <input v-model="tempEvent.image" type="text" placeholder="例如: images/fuji.jpg 或 圖片網址" class="w-full bg-white p-2 rounded-lg border border-gray-200 text-xs text-gray-600 focus:border-winter outline-none">
+                    <p class="text-[10px] text-gray-400 mt-1">請確認檔案已放入 images 資料夾</p>
                 </div>
 
                 <div v-if="tempEvent.type === 'spot'" class="space-y-4">
@@ -812,7 +814,6 @@ const exchangeRate = ref(0.215);
 
             const weatherIcon = computed(() => { if (!weatherData.value.current) return '⏳'; const code = weatherData.value.current.weather_code; if (code === 0) return '☀️'; if (code <= 3) return '⛅'; if (code <= 48) return '🌫️'; if (code <= 67) return '🌧️'; if (code <= 77) return '❄️'; return '🌥️'; });
 
-            // Removed handleImageUpload, used text input for image path instead
             const viewImage = (img) => { previewImage.value = img; };
             const openAddModal = () => { isEditing.value = false; editingIndex.value = null; tempEvent.value = { type: 'spot', time: '', location: '', origin: '', destination: '', transportMode: 'Train', note: '', image: '' }; showAddModal.value = true; };
             const openEditModal = (index) => { isEditing.value = true; editingIndex.value = index; tempEvent.value = JSON.parse(JSON.stringify(days.value[currentDayIndex.value].events[index])); if(!tempEvent.value.type) tempEvent.value.type = 'spot'; if(!tempEvent.value.transportMode) tempEvent.value.transportMode = 'Train'; showAddModal.value = true; };
