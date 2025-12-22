@@ -60,7 +60,7 @@
         <div v-if="currentTab === 'schedule'" class="space-y-6">
             <div class="relative w-full h-56 rounded-3xl overflow-hidden soft-shadow border border-white bg-gray-100">
                 <div id="schedule-map"></div>
-                <div v-if="mapLoading" class="absolute inset-0 bg-white/60 backdrop-blur-sm z-[1000] flex items-center justify-center pointer-events-none"><div class="text-xs font-bold text-winter animate-pulse">Updating Pins...</div></div>
+                <div v-if="mapLoading" class="absolute inset-0 bg-white/60 backdrop-blur-sm z-[1000] flex items-center justify-center pointer-events-none"><div class="text-xs font-bold text-winter animate-pulse">Locating...</div></div>
             </div>
 
             <div class="flex items-center justify-between px-1">
@@ -156,14 +156,11 @@
                 
                 <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
                     <label class="block text-xs font-bold text-gray-400 mb-2">Image Path / URL</label>
-                    
                     <div v-if="tempEvent.image" class="relative mb-2 bg-white rounded-lg border border-gray-200">
                         <img :src="tempEvent.image" class="w-full h-32 object-cover rounded-lg" onerror="this.style.display='none'">
                         <button @click="tempEvent.image = ''" class="absolute top-1 right-1 bg-gray-800/80 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow hover:bg-red-500 transition-colors">×</button>
                     </div>
-
                     <input v-model="tempEvent.image" type="text" placeholder="例如: images/fuji.jpg 或 圖片網址" class="w-full bg-white p-2 rounded-lg border border-gray-200 text-xs text-gray-600 focus:border-winter outline-none">
-                    <p class="text-[10px] text-gray-400 mt-1">請確認檔案已放入 images 資料夾</p>
                 </div>
 
                 <div v-if="tempEvent.type === 'spot'" class="space-y-4">
@@ -841,7 +838,12 @@ const exchangeRate = ref(0.215);
             const onDrop = (index) => { const list = days.value[currentDayIndex.value].events; const draggedItem = list[draggedIndex.value]; list.splice(draggedIndex.value, 1); list.splice(index, 0, draggedItem); draggedIndex.value = null; refreshMap(); };
 
             const initOrUpdateMap = async () => { if (currentTab.value !== 'schedule') return; await nextTick(); if (!map) { map = L.map('schedule-map', { zoomControl: false }).setView([35.6895, 139.6917], 13); L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '', maxZoom: 19 }).addTo(map); } refreshMap(); };
-            const refreshMap = async () => { if (!map) return; mapLoading.value = true; markers.forEach(m => map.removeLayer(m)); markers = []; const events = days.value[currentDayIndex.value].events; const bounds = L.latLngBounds(); let hasPins = false; for (const event of events) { if (event.type === 'spot') { try { const query = encodeURIComponent(event.location + " Tokyo"); const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`); const data = await res.json(); if (data && data.length > 0) { const lat = data[0].lat; const lon = data[0].lon; const pin = L.marker([lat, lon]).addTo(map); pin.bindPopup(`<b>${event.time}</b><br>${event.location}`); markers.push(pin); bounds.extend([lat, lon]); hasPins = true; } await new Promise(r => setTimeout(r, 600)); } catch(e) {} } } if (hasPins) map.fitBounds(bounds, { padding: [30, 30] }); mapLoading.value = false; };
+            
+            // 【修改重點】搜尋地點時，不再鎖定 "Tokyo"，改為鎖定 "Japan"
+            const refreshMap = async () => { if (!map) return; mapLoading.value = true; markers.forEach(m => map.removeLayer(m)); markers = []; const events = days.value[currentDayIndex.value].events; const bounds = L.latLngBounds(); let hasPins = false; for (const event of events) { if (event.type === 'spot') { try { 
+                const query = encodeURIComponent(event.location + " Japan"); // 這裡改成 Japan
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`); const data = await res.json(); if (data && data.length > 0) { const lat = data[0].lat; const lon = data[0].lon; const pin = L.marker([lat, lon]).addTo(map); pin.bindPopup(`<b>${event.time}</b><br>${event.location}`); markers.push(pin); bounds.extend([lat, lon]); hasPins = true; } await new Promise(r => setTimeout(r, 600)); } catch(e) {} } } if (hasPins) map.fitBounds(bounds, { padding: [30, 30] }); mapLoading.value = false; };
+            
             const changeDay = (index) => { currentDayIndex.value = index; setTimeout(() => refreshMap(), 300); };
             watch(currentTab, (newTab) => { if (newTab === 'schedule') { setTimeout(() => { if(map) map.invalidateSize(); else initOrUpdateMap(); }, 100); }});
             
