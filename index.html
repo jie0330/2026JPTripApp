@@ -24,6 +24,7 @@
         .draggable-item { cursor: grab; }
         .draggable-item:active { cursor: grabbing; }
         .dragging { opacity: 0.6; transform: scale(0.98); background-color: #f1f5f9; border: 2px dashed #71a1cb; }
+        .memo-link { word-break: break-all; }
     </style>
     <script> tailwind.config = { theme: { extend: { colors: { winter: { DEFAULT: '#71a1cb', light: '#eef6fc', dark: '#5a8ab5' } } } } } </script>
 </head>
@@ -40,13 +41,14 @@
                 </h1>
             </div>
             <div class="flex items-center gap-3">
-                <button v-if="currentTab === 'schedule'" @click="refreshMap" class="text-[10px] bg-winter/10 text-winter px-2 py-1 rounded-full border border-winter/20 active:bg-winter active:text-white transition-colors flex items-center">↻ Map</button>
+                <button v-if="currentTab === 'schedule'" @click="refreshMap" class="text-[10px] bg-winter/10 text-winter px-2 py-1 rounded-full border border-winter/20 active:bg-winter active:text-white transition-colors flex items-center">↻ Reload Map</button>
                 <button @click="showDataModal = true" class="text-gray-400 hover:text-winter transition-colors p-1">⚙️</button>
             </div>
         </div>
         <div class="flex border-b border-slate-200 mt-2">
-            <button @click="currentTab = 'schedule'" class="flex-1 py-3 text-sm font-bold transition-colors relative" :class="currentTab === 'schedule' ? 'text-winter' : 'text-gray-400 hover:text-gray-600'">行程 & 交通<div v-if="currentTab === 'schedule'" class="absolute bottom-0 left-0 w-full h-0.5 bg-winter"></div></button>
-            <button @click="currentTab = 'money'" class="flex-1 py-3 text-sm font-bold transition-colors relative" :class="currentTab === 'money' ? 'text-winter' : 'text-gray-400 hover:text-gray-600'">分帳 & 匯率<div v-if="currentTab === 'money'" class="absolute bottom-0 left-0 w-full h-0.5 bg-winter"></div></button>
+            <button @click="currentTab = 'schedule'" class="flex-1 py-3 text-sm font-bold transition-colors relative" :class="currentTab === 'schedule' ? 'text-winter' : 'text-gray-400 hover:text-gray-600'">行程<div v-if="currentTab === 'schedule'" class="absolute bottom-0 left-0 w-full h-0.5 bg-winter"></div></button>
+            <button @click="currentTab = 'money'" class="flex-1 py-3 text-sm font-bold transition-colors relative" :class="currentTab === 'money' ? 'text-winter' : 'text-gray-400 hover:text-gray-600'">分帳<div v-if="currentTab === 'money'" class="absolute bottom-0 left-0 w-full h-0.5 bg-winter"></div></button>
+            <button @click="currentTab = 'memo'" class="flex-1 py-3 text-sm font-bold transition-colors relative" :class="currentTab === 'memo' ? 'text-winter' : 'text-gray-400 hover:text-gray-600'">備忘錄<div v-if="currentTab === 'memo'" class="absolute bottom-0 left-0 w-full h-0.5 bg-winter"></div></button>
         </div>
         <div v-if="currentTab === 'schedule'" class="px-4 py-3 bg-white/50 border-b border-slate-200">
              <div class="flex space-x-3 overflow-x-auto no-scrollbar">
@@ -57,16 +59,20 @@
     </header>
 
     <main class="flex-1 overflow-y-auto p-6 pb-6 scroll-smooth relative">
+        
         <div v-if="currentTab === 'schedule'" class="space-y-6">
             <div class="relative w-full h-56 rounded-3xl overflow-hidden soft-shadow border border-white bg-gray-100">
                 <div id="schedule-map"></div>
-                <div v-if="mapLoading" class="absolute inset-0 bg-white/60 backdrop-blur-sm z-[1000] flex items-center justify-center pointer-events-none"><div class="text-xs font-bold text-winter animate-pulse">Locating...</div></div>
+                <div v-if="mapLoading" class="absolute inset-0 bg-white/60 backdrop-blur-sm z-[1000] flex items-center justify-center pointer-events-none">
+                    <div class="text-xs font-bold text-winter animate-pulse flex flex-col items-center">
+                        <span>Locating Day {{ currentDayIndex }}...</span>
+                    </div>
+                </div>
             </div>
 
             <div class="flex items-center justify-between px-1">
                  <input type="date" v-model="days[currentDayIndex].date" class="bg-transparent text-sm font-bold text-gray-600 border-none p-0 focus:ring-0">
-                 <div v-if="weatherData.current" class="text-xs font-medium text-winter bg-white border border-white px-2 py-1 rounded-md shadow-sm flex items-center gap-1"><span>{{ weatherIcon }}</span><span>{{ weatherData.current.temperature_2d }}°C</span></div>
-            </div>
+                 </div>
 
             <div class="relative space-y-6 pl-4 border-l border-slate-300 ml-2">
                 <div v-if="days[currentDayIndex].events.length === 0" class="pl-4 py-4 text-xs text-gray-400 font-light tracking-widest">NO EVENTS FOR TODAY</div>
@@ -126,6 +132,45 @@
                 </div>
             </div>
         </div>
+
+        <div v-if="currentTab === 'memo'" class="space-y-6 pb-20">
+            <div class="bg-white p-4 rounded-3xl soft-shadow border border-white">
+                <textarea v-model="newMemoContent" placeholder="在此輸入網址、圖片路徑或筆記..." class="w-full bg-gray-50 p-3 rounded-xl border-none focus:ring-1 focus:ring-winter text-sm mb-3 resize-none h-20"></textarea>
+                <div class="flex gap-2 items-center">
+                    <div class="flex-1 flex gap-1 overflow-x-auto no-scrollbar">
+                        <button v-for="tag in ['通用', '地圖', '美食', '購物', '票券']" :key="tag" @click="newMemoTag = tag" :class="newMemoTag === tag ? 'bg-winter text-white' : 'bg-gray-100 text-gray-400'" class="px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors">{{ tag }}</button>
+                    </div>
+                    <button @click="addMemo" class="bg-slate-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-slate-800">Add</button>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <div v-for="(memo, index) in memos" :key="index" class="bg-white p-4 rounded-2xl soft-shadow border border-white relative group">
+                    <button @click="deleteMemo(index)" class="absolute top-2 right-2 text-gray-200 hover:text-red-400 px-2">×</button>
+                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold mb-2" :class="getMemoTagColor(memo.tag)">{{ memo.tag }}</span>
+                    
+                    <div class="text-sm text-gray-700">
+                        <div v-if="isImagePath(memo.content)" class="mt-1">
+                             <img :src="memo.content" class="w-full h-40 object-cover rounded-xl border border-slate-100" onerror="this.style.display='none'">
+                             <p class="text-[10px] text-gray-400 mt-1 font-mono break-all">{{ memo.content }}</p>
+                        </div>
+                        <div v-else-if="isUrl(memo.content)" class="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100 mt-1 hover:bg-slate-100 transition-colors cursor-pointer" @click="openLink(memo.content)">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0" :class="isGoogleMap(memo.content) ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-500'">
+                                {{ isGoogleMap(memo.content) ? '🗺️' : '🔗' }}
+                            </div>
+                            <div class="overflow-hidden">
+                                <div class="font-bold text-xs truncate text-gray-800">{{ isGoogleMap(memo.content) ? 'Google Maps Location' : 'Web Link' }}</div>
+                                <div class="text-[10px] text-gray-400 truncate font-mono">{{ memo.content }}</div>
+                            </div>
+                        </div>
+                        <div v-else class="whitespace-pre-wrap leading-relaxed">{{ memo.content }}</div>
+                    </div>
+                    <div class="text-[10px] text-gray-300 text-right mt-2">{{ new Date(memo.id).toLocaleDateString() }}</div>
+                </div>
+                <div v-if="memos.length === 0" class="text-center py-10 text-gray-300 text-xs">沒有備忘錄<br>貼個連結或圖片試試看吧！</div>
+            </div>
+        </div>
+
     </main>
 
     <div v-if="showDataModal" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -236,12 +281,15 @@
             const tempEvent = ref({ type: 'spot', time: '', location: '', origin: '', destination: '', transportMode: 'Train', note: '', image: '' });
             const peopleNames = ['羊羊', '董董']; 
             const newExpense = ref({ payer: '羊羊', item: '', amount: '', currency: 'JPY' });
-            const weatherData = ref({});
+            
+            // Memo State
+            const memos = ref([]);
+            const newMemoContent = ref('');
+            const newMemoTag = ref('通用');
+
             let map = null, markers = [];
 
-            // -------------------------------------------------------------
-            // ⭐ 核心資料 (已整合你提供的數據)
-            // -------------------------------------------------------------
+            // 資料
             const days = ref([
     {
         "date": "2026-02-20",
@@ -1434,8 +1482,6 @@ const expenses = ref([
 ]);
 const exchangeRate = ref(0.215);
 
-            const weatherIcon = computed(() => { if (!weatherData.value.current) return '⏳'; const code = weatherData.value.current.weather_code; if (code === 0) return '☀️'; if (code <= 3) return '⛅'; if (code <= 48) return '🌫️'; if (code <= 67) return '🌧️'; if (code <= 77) return '❄️'; return '🌥️'; });
-
             const viewImage = (img) => { previewImage.value = img; };
             const openAddModal = () => { isEditing.value = false; editingIndex.value = null; tempEvent.value = { type: 'spot', time: '', location: '', origin: '', destination: '', transportMode: 'Train', note: '', image: '' }; showAddModal.value = true; };
             const openEditModal = (index) => { isEditing.value = true; editingIndex.value = index; tempEvent.value = JSON.parse(JSON.stringify(days.value[currentDayIndex.value].events[index])); if(!tempEvent.value.type) tempEvent.value.type = 'spot'; if(!tempEvent.value.transportMode) tempEvent.value.transportMode = 'Train'; showAddModal.value = true; };
@@ -1453,9 +1499,18 @@ const exchangeRate = ref(0.215);
             const perPersonShare = computed(() => peopleNames.length ? Math.round(totalSpentJPY.value / peopleNames.length) : 0);
             const people = computed(() => peopleNames.map(name => { let paidInJPY = 0; expenses.value.forEach(e => { let amountJPY = e.currency === 'TWD' ? (e.amount / exchangeRate.value) : e.amount; if (e.type === 'expense') { if (e.payer === name) paidInJPY += amountJPY; } else if (e.type === 'transfer') { if (e.payer === name) paidInJPY += amountJPY; if (e.payee === name) paidInJPY -= amountJPY; } }); return { name, balance: paidInJPY - perPersonShare.value }; }));
 
-            const exportData = () => { const data = { days: days.value, expenses: expenses.value, exchangeRate: exchangeRate.value }; const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `2026JP_Full_Backup_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url); };
-            const importData = (event) => { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { try { const parsed = JSON.parse(e.target.result); if(confirm('Overwrite?')) { days.value = parsed.days || days.value; expenses.value = parsed.expenses || expenses.value; exchangeRate.value = parsed.exchangeRate || exchangeRate.value; showDataModal.value = false; refreshMap(); alert('Success!'); } } catch (err) { alert('Invalid file!'); } }; reader.readAsText(file); };
-            const copyCodeToClipboard = () => { const daysJson = JSON.stringify(days.value, null, 4); const expensesJson = JSON.stringify(expenses.value, null, 4); const rateJson = exchangeRate.value; const codeSnippet = `const days = ref(${daysJson});\nconst expenses = ref(${expensesJson});\nconst exchangeRate = ref(${rateJson});`; navigator.clipboard.writeText(codeSnippet).then(() => { copySuccess.value = true; setTimeout(() => copySuccess.value = false, 2000); alert('Code copied!'); }); };
+            // Memo Functions
+            const addMemo = () => { if(!newMemoContent.value.trim()) return; memos.value.unshift({ id: Date.now(), content: newMemoContent.value.trim(), tag: newMemoTag.value }); newMemoContent.value = ''; };
+            const deleteMemo = (index) => { if(confirm('Delete note?')) memos.value.splice(index, 1); };
+            const isUrl = (txt) => /^http/i.test(txt);
+            const isGoogleMap = (txt) => /google\.com\/maps|goo\.gl/.test(txt);
+            const isImagePath = (txt) => /\.(jpeg|jpg|gif|png)$/i.test(txt) || txt.startsWith('images/');
+            const openLink = (url) => window.open(url, '_blank');
+            const getMemoTagColor = (tag) => ({ '通用': 'bg-gray-200 text-gray-600', '地圖': 'bg-emerald-100 text-emerald-600', '美食': 'bg-orange-100 text-orange-600', '購物': 'bg-pink-100 text-pink-600', '票券': 'bg-blue-100 text-blue-600' }[tag] || 'bg-gray-200 text-gray-600');
+
+            const exportData = () => { const data = { days: days.value, expenses: expenses.value, memos: memos.value, exchangeRate: exchangeRate.value }; const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `2026JP_Full_Backup_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url); };
+            const importData = (event) => { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { try { const parsed = JSON.parse(e.target.result); if(confirm('Overwrite?')) { days.value = parsed.days || days.value; expenses.value = parsed.expenses || expenses.value; memos.value = parsed.memos || memos.value; exchangeRate.value = parsed.exchangeRate || exchangeRate.value; showDataModal.value = false; refreshMap(); alert('Success!'); } } catch (err) { alert('Invalid file!'); } }; reader.readAsText(file); };
+            const copyCodeToClipboard = () => { const daysJson = JSON.stringify(days.value, null, 4); const expensesJson = JSON.stringify(expenses.value, null, 4); const memosJson = JSON.stringify(memos.value, null, 4); const rateJson = exchangeRate.value; const codeSnippet = `const days = ref(${daysJson});\nconst expenses = ref(${expensesJson});\nconst memos = ref(${memosJson});\nconst exchangeRate = ref(${rateJson});`; navigator.clipboard.writeText(codeSnippet).then(() => { copySuccess.value = true; setTimeout(() => copySuccess.value = false, 2000); alert('Code copied!'); }); };
             const resetData = () => { if(confirm('Reset?')) { localStorage.removeItem('2026JP_YangDong_Full_v1'); location.reload(); }};
 
             const onDragStart = (index, event) => { draggedIndex.value = index; event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.dropEffect = 'move'; };
@@ -1464,16 +1519,54 @@ const exchangeRate = ref(0.215);
 
             const initOrUpdateMap = async () => { if (currentTab.value !== 'schedule') return; await nextTick(); if (!map) { map = L.map('schedule-map', { zoomControl: false }).setView([35.6895, 139.6917], 13); L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '', maxZoom: 19 }).addTo(map); } refreshMap(); };
             
-            // 【修改重點】搜尋地點時，不再鎖定 "Tokyo"，改為鎖定 "Japan"
-            const refreshMap = async () => { if (!map) return; mapLoading.value = true; markers.forEach(m => map.removeLayer(m)); markers = []; const events = days.value[currentDayIndex.value].events; const bounds = L.latLngBounds(); let hasPins = false; for (const event of events) { if (event.type === 'spot') { try { 
-                const query = encodeURIComponent(event.location + " Japan"); // 這裡改成 Japan
-                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`); const data = await res.json(); if (data && data.length > 0) { const lat = data[0].lat; const lon = data[0].lon; const pin = L.marker([lat, lon]).addTo(map); pin.bindPopup(`<b>${event.time}</b><br>${event.location}`); markers.push(pin); bounds.extend([lat, lon]); hasPins = true; } await new Promise(r => setTimeout(r, 600)); } catch(e) {} } } if (hasPins) map.fitBounds(bounds, { padding: [30, 30] }); mapLoading.value = false; };
+            // MAP REFRESH LOGIC - ONLY CURRENT DAY
+            const refreshMap = async () => { 
+                if (!map) return; 
+                mapLoading.value = true; 
+                
+                // Clear all existing markers first
+                markers.forEach(m => map.removeLayer(m)); 
+                markers = []; 
+                
+                // Get ONLY current day's events
+                const events = days.value[currentDayIndex.value].events; 
+                const bounds = L.latLngBounds(); 
+                let hasPins = false; 
+
+                for (const event of events) { 
+                    if (event.type === 'spot') { 
+                        try { 
+                            const query = encodeURIComponent(event.location + " Japan"); 
+                            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`); 
+                            const data = await res.json(); 
+                            if (data && data.length > 0) { 
+                                const lat = data[0].lat; 
+                                const lon = data[0].lon; 
+                                const pin = L.marker([lat, lon]).addTo(map); 
+                                pin.bindPopup(`<b>${event.time}</b><br>${event.location}`); 
+                                markers.push(pin); 
+                                bounds.extend([lat, lon]); 
+                                hasPins = true; 
+                            } 
+                            await new Promise(r => setTimeout(r, 400)); // Slight delay to be nice to API
+                        } catch(e) {} 
+                    } 
+                } 
+                
+                if (hasPins) {
+                    map.fitBounds(bounds, { padding: [50, 50] }); 
+                } else {
+                    // Default view if no pins for this day
+                     map.setView([35.6895, 139.6917], 12);
+                }
+                mapLoading.value = false; 
+            };
             
-            const changeDay = (index) => { currentDayIndex.value = index; setTimeout(() => refreshMap(), 300); };
+            const changeDay = (index) => { currentDayIndex.value = index; setTimeout(() => refreshMap(), 100); };
             watch(currentTab, (newTab) => { if (newTab === 'schedule') { setTimeout(() => { if(map) map.invalidateSize(); else initOrUpdateMap(); }, 100); }});
             
             const saveKey = '2026JP_YangDong_Full_v1';
-            watch([days, expenses, exchangeRate], () => { localStorage.setItem(saveKey, JSON.stringify({ days: days.value, expenses: expenses.value, exchangeRate: exchangeRate.value })); }, { deep: true });
+            watch([days, expenses, memos, exchangeRate], () => { localStorage.setItem(saveKey, JSON.stringify({ days: days.value, expenses: expenses.value, memos: memos.value, exchangeRate: exchangeRate.value })); }, { deep: true });
             
             onMounted(() => { 
                 const saved = localStorage.getItem(saveKey); 
@@ -1481,16 +1574,16 @@ const exchangeRate = ref(0.215);
                     const parsed = JSON.parse(saved); 
                     if(parsed.days && parsed.days.length > 0) days.value = parsed.days; 
                     expenses.value = parsed.expenses || expenses.value; 
+                    memos.value = parsed.memos || [];
                     exchangeRate.value = parsed.exchangeRate || 0.215; 
                 } 
-                fetch('https://api.open-meteo.com/v1/forecast?latitude=35.6895&longitude=139.6917&current=temperature_2d,weather_code&timezone=Asia%2FTokyo').then(res => res.json()).then(data => weatherData.value = data); 
+                // Removed Weather Fetch
                 initOrUpdateMap(); 
             });
 
-            return { currentTab, showAddModal, showExpenseModal, showDataModal, currentDayIndex, days, tempEvent, isEditing, openAddModal, openEditModal, saveEvent, deleteEvent, peopleNames, expenses, newExpense, deleteExpense, totalSpentJPY, perPersonShare, people, exchangeRate, weatherData, weatherIcon, mapLoading, refreshMap, changeDay, getGoogleMapsLink, getTransportIcon, addToNote, exportData, importData, copyCodeToClipboard, copySuccess, resetData, onDragStart, onDrop, onDragEnd, draggedIndex, viewImage, previewImage, isEditingExpense, openAddExpense, openEditExpense, saveExpense, addDay: () => days.value.push({date:'', events:[]}) };
+            return { currentTab, showAddModal, showExpenseModal, showDataModal, currentDayIndex, days, tempEvent, isEditing, openAddModal, openEditModal, saveEvent, deleteEvent, peopleNames, expenses, newExpense, deleteExpense, totalSpentJPY, perPersonShare, people, exchangeRate, mapLoading, refreshMap, changeDay, getGoogleMapsLink, getTransportIcon, addToNote, exportData, importData, copyCodeToClipboard, copySuccess, resetData, onDragStart, onDrop, onDragEnd, draggedIndex, viewImage, previewImage, isEditingExpense, openAddExpense, openEditExpense, saveExpense, addDay: () => days.value.push({date:'', events:[]}), memos, newMemoContent, newMemoTag, addMemo, deleteMemo, isUrl, isGoogleMap, isImagePath, openLink, getMemoTagColor };
         }
     }).mount('#app');
 </script>
 </body>
 </html>
-
